@@ -856,9 +856,9 @@ class sbitvec(_vec, _bit):
                     backup = prog.use_edabit()
                     prog.use_edabit(True)
                     from Compiler.floatingpoint import BitDecFieldRaw
-                    self.v = BitDecFieldRaw(elements,
-                                            input_length or prog.bit_length,
-                                            length, prog.security)
+                    self.v = BitDecFieldRaw(
+                        elements, max(length, input_length or prog.bit_length),
+                        length, prog.security)
                     prog.use_edabit(backup)
                     return
                 l = int(Program.prog.options.ring)
