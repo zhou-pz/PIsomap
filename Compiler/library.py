@@ -3,7 +3,7 @@ This module defines functions directly available in high-level programs,
 in particularly providing flow control and output.
 """
 
-from Compiler.types import cint,sint,cfix,sfix,sfloat,MPCThread,Array,MemValue,cgf2n,sgf2n,_number,_mem,_register,regint,Matrix,_types, cfloat, _single, localint, personal, copy_doc, _vec, SubMultiArray
+from Compiler.types import cint,sint,cfix,sfix,sfloat,MPCThread,Array,MemValue,cgf2n,sgf2n,_number,_mem,_register,regint,Matrix,_types, cfloat, _single, localint, personal, copy_doc, _vec, SubMultiArray, _secret
 from Compiler.instructions import *
 from Compiler.util import tuplify,untuplify,is_zero
 from Compiler.allocator import RegintOptimizer, AllocPool
@@ -94,7 +94,7 @@ def print_str(s, *args, print_secrets=False):
             if isinstance(val, Tape.Register):
                 if val.is_clear:
                     val.print_reg_plain()
-                elif print_secrets and isinstance(val, sint):
+                elif print_secrets and isinstance(val, _secret):
                     val.output()
                 else:
                     raise CompilerError(

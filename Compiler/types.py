@@ -2340,6 +2340,10 @@ class _secret(_arithmetic_register, _secret_structure):
     def raw_mod2m(self, m):
         return self - (self.raw_right_shift(m) << m)
 
+    @set_instruction_type
+    @vectorize
+    def output(self):
+        print_reg_plains(self)
 
 class sint(_secret, _int):
     """
@@ -3089,10 +3093,6 @@ class sint(_secret, _int):
         args = sum(([len(part), part] for part in parts), [])
         concats(res, *args)
         return res
-
-    @vectorize
-    def output(self):
-        print_reg_plains(self)
 
 class sintbit(sint):
     """ :py:class:`sint` holding a bit, supporting binary operations
