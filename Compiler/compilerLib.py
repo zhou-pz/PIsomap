@@ -353,8 +353,8 @@ class Compiler:
 
         self.VARS["program"] = self.prog
         if self.options.binary:
-            self.VARS["sint"] = GC_types.sbitintvec.get_type(int(self.options.binary))
-            self.VARS["sfix"] = GC_types.sbitfixvec
+            self.sint = GC_types.sbitintvec.get_type(int(self.options.binary))
+            self.sfix = GC_types.sbitfixvec
             for i in [
                 "cint",
                 "cfix",
@@ -369,6 +369,12 @@ class Compiler:
                 "squant",
             ]:
                 del self.VARS[i]
+        else:
+            self.sint = types.sint
+            self.sfix = types.sfix
+
+        self.VARS["sint"] = self.sint
+        self.VARS["sfix"] = self.sfix
 
     def prep_compile(self, name=None, build=True):
         self.parse_args()
