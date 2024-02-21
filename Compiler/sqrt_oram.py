@@ -633,7 +633,8 @@ class RecursivePositionMap(PositionMap[T, B], SqrtOram[T, B]):
         program = Program.prog
         h = MemValue(self.value_type.bit_compose(sbits.get_type(program.bit_length)(
             logical_address).right_shift(pack_log, program.bit_length)))
-        l = self.value_type.bit_compose(sbits(logical_address) & (pack - 1))
+        l = self.value_type.bit_compose(
+            sbits.get_type(program.bit_length)(logical_address) & (pack - 1))
 
         global trace
         if trace:
