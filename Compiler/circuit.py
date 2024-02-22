@@ -165,7 +165,8 @@ def sha3_256(x):
     # rate
     r = 1088
     # round up to be multiple of rate
-    n_blocks = max(math.ceil(len(x.v) / r), 1)
+    length_with_suffix = len(x.v) + 8 # to handle the case the fixed padding overflows the block
+    n_blocks = max(math.ceil(length_with_suffix / r), 1)
     upper_block_length = n_blocks * r
 
     if x.v:
