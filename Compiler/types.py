@@ -5957,14 +5957,18 @@ class Array(_vectorizable):
             n_threads = None
         if n_threads is not None:
             self.address = MemValue.if_necessary(self.address)
-        @library.multithread(n_threads, self.length)
+        @library.multithread(n_threads, self.length, max_size=program.budget)
         def _(base, size):
             if use_vector:
                 self.assign_vector(self.value_type(value, size=size), base)
             else:
-                @library.for_range_opt(size)
-                def _(i):
-                    self[base + i] = mem_value
+                v = mem_value.read()
+                if isinstance(v, sint):
+                    self.assign_vector(v.expand_to_vector(size), base=base)
+                else:
+                    @library.for_range_opt(size)
+                    def _(i):
+                        self[base + i] = mem_value
         return self
 
     def get_vector(self, base=0, size=None):
