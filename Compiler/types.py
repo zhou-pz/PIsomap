@@ -6662,11 +6662,17 @@ class SubMultiArray(_vectorizable):
         if is_zero(other):
             return self
         assert self.sizes == other.sizes
-        if len(self.sizes) == 2:
-            res = Matrix(self.sizes[0], self.sizes[1], self.value_type)
+        return self.from_vector(
+            self.sizes, self.get_vector() + other.get_vector())
+
+    @staticmethod
+    def from_vector(sizes, vector):
+        value_type = type(vector)
+        if len(sizes) == 2:
+            res = Matrix(sizes[0], sizes[1], value_type)
         else:
-            res = MultiArray(self.sizes, self.value_type)
-        res.assign_vector(self.get_vector() + other.get_vector())
+            res = MultiArray(sizes, value_type)
+        res.assign_vector(vector)
         return res
 
     __radd__ = __add__
@@ -6679,12 +6685,8 @@ class SubMultiArray(_vectorizable):
         if is_zero(other):
             return self
         assert self.sizes == other.sizes
-        if len(self.sizes) == 2:
-            res = Matrix(self.sizes[0], self.sizes[1], self.value_type)
-        else:
-            res = MultiArray(self.sizes, self.value_type)
-        res.assign_vector(self.get_vector() - other.get_vector())
-        return res
+        return self.from_vector(
+            self.sizes, self.get_vector() - other.get_vector())
 
     def iadd(self, other):
         """ Element-wise addition in place.
