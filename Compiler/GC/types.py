@@ -1132,7 +1132,7 @@ class DynamicArray(Array):
         else:
             cbits.conv(value).store_in_dynamic_mem(address)
 
-sbits.dynamic_array = DynamicArray
+sbits.dynamic_array = Array
 cbits.dynamic_array = Array
 
 def _complement_two_extend(bits, k):
