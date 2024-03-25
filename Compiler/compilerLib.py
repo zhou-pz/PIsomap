@@ -394,6 +394,8 @@ class Compiler:
         If options.merge_opens is set to True, will attempt to merge any
         parallelisable open instructions."""
         print("Compiling file", self.prog.infile)
+        self.prog.sint = self.sint
+        self.prog.sfix = self.sfix
 
         with open(self.prog.infile, "r") as f:
             changed = False
