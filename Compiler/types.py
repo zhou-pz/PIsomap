@@ -5770,6 +5770,8 @@ class Array(_vectorizable):
         if isinstance(index, (_secret, _single)):
             raise CompilerError('need cleartext index')
         key = str(index), size or 1
+        if not util.is_constant(index):
+            index = regint.conv(index)
         if self.length is not None:
             from .GC.types import cbits
             if isinstance(index, int):
@@ -5778,9 +5780,9 @@ class Array(_vectorizable):
                     raise IndexError('index %s, length %s' % \
                                          (str(index), str(self.length)))
             elif self.check_indices and not isinstance(index, cbits):
-                library.runtime_error_if(regint.conv(index) >= self.length,
-                                         'overflow: %s/%s',
-                                         index, self.length)
+                library.runtime_error_if(
+                    (index >= self.length).bit_or(index < 0),
+                    'overflow: %s/%s', index, self.length)
         if (program.curr_block, key) not in self.address_cache:
             n = self.value_type.n_elements()
             length = self.length
