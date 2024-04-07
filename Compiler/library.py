@@ -492,10 +492,11 @@ def method_block(function):
             return block(*args)
     return wrapper
 
-def cond_swap(x,y):
+def cond_swap(x, y, key_indices=None):
     from .types import SubMultiArray
     if isinstance(x, (Array, SubMultiArray)):
-        b = x[0] > y[0]
+        assert len(key_indices) == 1
+        b = x[key_indices[0]] > y[key_indices[0]]
         return list(zip(*[b.cond_swap(xx, yy) for xx, yy in zip(x, y)]))
     b = x < y
     if isinstance(x, sfloat):
@@ -564,7 +565,7 @@ def loopy_chunkier_odd_even_merge_sort(a, n=None, max_chunk_size=512, n_threads=
 
 
 def loopy_odd_even_merge_sort(a, sorted_length=1, n_parallel=32,
-                              n_threads=None):
+                              n_threads=None, key_indices=None):
     a_in = a
     if isinstance(a_in, list):
         a = Array.create_from(a)
@@ -592,13 +593,14 @@ def loopy_odd_even_merge_sort(a, sorted_length=1, n_parallel=32,
                         def swap(base, step):
                             if m == len(a):
                                 a[base], a[base + step] = \
-                                    cond_swap(a[base], a[base + step])
+                                    cond_swap(a[base], a[base + step],
+                                              key_indices=key_indices)
                             else:
                                 # ignore values outside range
                                 go = base + step < len(a)
                                 x = a.maybe_get(go, base)
                                 y = a.maybe_get(go, base + step)
-                                tmp = cond_swap(x, y)
+                                tmp = cond_swap(x, y, key_indices=key_indices)
                                 for i, idx in enumerate((base, base + step)):
                                     a.maybe_set(go, idx, tmp[i])
                         if k == 2:

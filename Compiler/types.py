@@ -7086,16 +7086,15 @@ class SubMultiArray(_vectorizable):
         :param n_bits: number of bits in keys (default: global bit length)
 
         """
-        if program.options.binary:
-            assert key_indices is None
-            assert len(self.sizes) == 2
-            library.loopy_odd_even_merge_sort(self)
-            return
         if key_indices is None:
             key_indices = (0,) * (len(self.sizes) - 1)
         if len(key_indices) != len(self.sizes) - 1:
             raise CompilerError('length of key_indices has to be one less '
                                 'than the dimension')
+        if program.options.binary:
+            assert len(self.sizes) == 2
+            library.loopy_odd_even_merge_sort(self, key_indices=key_indices)
+            return
         key_indices = (None,) + util.tuplify(key_indices)
         from . import sorting
         keys = self.get_vector_by_indices(*key_indices)
