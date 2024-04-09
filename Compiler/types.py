@@ -6489,7 +6489,7 @@ class SubMultiArray(_vectorizable):
 
     def get_part_size(self):
         assert self.value_type.n_elements() == 1
-        return reduce(operator.mul, self.sizes[1:])
+        return reduce(operator.mul, self.sizes[1:]) * self.value_type.mem_size()
 
     def get_slice_addresses(self, slice, part_size=None):
         part_size = part_size or self.get_part_size()
@@ -6992,7 +6992,8 @@ class SubMultiArray(_vectorizable):
         :param index: regint/cint/int
         """
         assert self.value_type.n_elements() == 1
-        addresses = regint.inc(self.sizes[0], self.address + index,
+        addresses = regint.inc(self.sizes[0], self.address + \
+                               index * self.value_type.mem_size(),
                                self.get_part_size())
         return self.value_type.load_mem(addresses)
 
@@ -7003,7 +7004,8 @@ class SubMultiArray(_vectorizable):
         :param vector: short enought vector of compatible type
         """
         assert self.value_type.n_elements() == 1
-        addresses = regint.inc(self.sizes[0], self.address + index,
+        addresses = regint.inc(self.sizes[0], self.address + \
+                               index * self.value_type.mem_size(),
                                self.get_part_size())
         self.value_type.conv(vector).store_in_mem(addresses)
 

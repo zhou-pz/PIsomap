@@ -776,8 +776,9 @@ class sbitvec(_vec, _bit):
                     return cls.from_vec(sb.bit_compose(
                         sbit.load_mem(address + i + j * n) for j in range(size))
                                         for i in range(n))
-                if not isinstance(address, int) and len(address) == n:
-                    return cls.from_vec(sbit.load_mem(x) for x in address)
+                if not isinstance(address, int):
+                    v = [sbit.load_mem(x, size=n).v[0] for x in address]
+                    return cls(v)
                 else:
                     return cls.from_vec(sbit.load_mem(address + i)
                                         for i in range(n))
@@ -787,10 +788,12 @@ class sbitvec(_vec, _bit):
                     if not util.is_constant(x):
                         size = max(size, x.n)
                 v = [sbits.get_type(size).conv(x) for x in self.v]
-                if not isinstance(address, int) and len(address) == n:
-                    assert max_n == 1
+                if not isinstance(address, int) and len(address) != 1:
+                    v = self.elements()
+                    assert len(v) == len(address)
                     for x, y in zip(v, address):
-                        x.store_in_mem(y)
+                        for i, xx in enumerate(x.bit_decompose(n)):
+                            xx.store_in_mem(y + i)
                 else:
                     assert isinstance(address, int) or len(address) == 1
                     for i in range(n):
