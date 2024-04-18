@@ -386,8 +386,11 @@ class cbits(bits):
         inst.cond_print_strb(self, string)
     def output_if(self, cond):
         if Program.prog.options.binary:
-            raise CompilerError('conditional output not supported')
-        cint(self).output_if(cond)
+            @library.if_(cond)
+            def _():
+                self.print_reg_plain()
+        else:
+            cint(self).output_if(cond)
     def reveal(self):
         return self
     def to_regint(self, dest=None):
