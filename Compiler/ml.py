@@ -1355,6 +1355,7 @@ class BatchNorm(Layer):
         else:
             print('Precise square root inverse in batch normalization')
             self.InvertSqrt = lambda x: 1 / mpc_math.sqrt(x)
+        self.is_trained = False
 
     def __repr__(self):
         return '%s(%s, approx=%s)' % \
@@ -1372,11 +1373,12 @@ class BatchNorm(Layer):
         @for_range_opt_multithread(self.n_threads,
                                    [len(batch), self.X.sizes[1]])
         def _(i, j):
-            tmp = self.weights[:] * (self.X[i][j][:] - self.mu[:]) * factor[:]
+            tmp = self.weights[:] * (self.X[i][j][:] - mu[:]) * factor[:]
             self.Y[i][j][:] = self.bias[:] + tmp
 
     def forward(self, batch, training=False):
-        if training:
+        if training or not self.is_trained:
+            self.is_trained = True
             d = self.X.sizes[1]
             d_in = self.X.sizes[2]
             s = sfix.Array(d_in)
@@ -3264,6 +3266,12 @@ def layers_from_torch(sequence, data_input_shape, batch_size, input_via=None,
             pass
         elif name == 'BatchNorm2d':
             layers.append(BatchNorm(layers[-1].Y.sizes))
+            if input_via is not None:
+                layers[-1].epsilon = item.eps
+                layers[-1].weights = sfix.input_tensor_via(input_via,
+                                                           item.weight.detach())
+                layers[-1].bias = sfix.input_tensor_via(input_via,
+                                                        item.bias.detach())
         elif name == 'Dropout':
             layers.append(Dropout(input_shape[0], mul(layers[-1].Y.sizes[1:]),
                                   alpha=item.p))
