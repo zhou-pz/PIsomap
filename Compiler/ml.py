@@ -3294,6 +3294,7 @@ class OneLayerSGD:
         self.n_epochs = n_epochs
         self.batch_size = batch_size
         self.program = program
+        Layer.back_batch_size = max(Layer.back_batch_size, batch_size)
 
     def fit(self, X_train, y_train):
         """ Train classifier.
