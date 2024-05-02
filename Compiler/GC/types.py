@@ -350,11 +350,14 @@ class cbits(bits):
         else:
             return self.clear_op(other, None, inst.xorcbi, operator.xor)
     def _and(self, other):
-        return NotImplemented
+        try:
+            return cbits.get_type(self.n)(regint(self) & regint(other))
+        except CompilerError:
+            return NotImplemented
     __radd__ = __add__
     def __mul__(self, other):
         if isinstance(other, cbits):
-            return NotImplemented
+            return cbits.get_type(self.n)(regint(self) * regint(other))
         else:
             try:
                 res = cbits.get_type(min(self.max_length,
@@ -539,6 +542,13 @@ class sbits(bits):
     def __mul__(self, other):
         if isinstance(other, int):
             return self.mul_int(other)
+        elif isinstance(other, cint):
+            try:
+                other = cbits.get_type(self.unit)(regint(other))
+            except CompilerError:
+                return NotImplemented
+            if self.n == 1:
+                return self.bit_compose([self] * self.unit) & other
         try:
             if (self.n, other.n) == (1, 1):
                 return self & other
