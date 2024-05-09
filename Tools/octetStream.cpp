@@ -106,12 +106,13 @@ octetStream octetStream::hash() const
 
 bigint octetStream::check_sum(int req_bytes) const
 {
-  unsigned char hash[req_bytes];
+  auto hash = new unsigned char[req_bytes];
   crypto_generichash(hash, req_bytes, data, len, NULL, 0);
 
   bigint ans;
   bigintFromBytes(ans,hash,req_bytes);
   // cout << ans << "\n";
+  delete[] hash;
   return ans;
 }
 
