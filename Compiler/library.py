@@ -1791,7 +1791,7 @@ def Norm(b, k, f, kappa, simplex_flag=False):
     # For simplex, we can get rid of computing abs(b)
     temp = None
     if simplex_flag == False:
-        temp = comparison.LessThanZero(b, k, kappa)
+        temp = b.less_than(0, k)
     elif simplex_flag == True:
         temp = cint(0)
 
@@ -1807,7 +1807,7 @@ def Norm(b, k, f, kappa, simplex_flag=False):
         z[i] = suffixes[i] - suffixes[i+1]
     z[k - 1] = suffixes[k-1]
 
-    acc = sint.bit_compose(reversed(z))
+    acc = b.bit_compose(reversed(z))
 
     part_reciprocal = absolute_val * acc
     signed_acc = sign * acc

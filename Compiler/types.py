@@ -850,6 +850,17 @@ class _arithmetic_register(_register):
             raise CompilerError('functionality only available in arithmetic circuits')
         super(_arithmetic_register, self).__init__(*args, **kwargs)
 
+    @classmethod
+    def get_type(cls, length):
+        return cls
+
+    @staticmethod
+    def two_power(n, size=None):
+        return floatingpoint.two_power(n)
+
+    def Norm(self, k, f, kappa=None, simplex_flag=False):
+        return library.Norm(self, k, f, kappa=kappa, simplex_flag=simplex_flag)
+
 class _clear(_arithmetic_register):
     """ Clear domain-dependent type. """
     __slots__ = []
@@ -1268,12 +1279,20 @@ class cint(_clear, _int):
         :param other: cint/regint/int """
         return self >> other
 
+    def round(self, k, m, kappa=None, nearest=None, signed=False):
+        if signed:
+            self += 2 ** (k - 1)
+        res = self >> m
+        if signed:
+            res -= 2 ** (k - m - 1)
+        return res
+
     @read_mem_value
     def greater_than(self, other, bit_length=None):
         return self > other
 
     @vectorize
-    def bit_decompose(self, bit_length=None):
+    def bit_decompose(self, bit_length=None, kappa=None, maybe_mixed=None):
         """ Clear bit decomposition.
 
         :param bit_length: number of bits (default is global bit length)
@@ -2878,9 +2897,6 @@ class sint(_secret, _int):
                 return floatingpoint.Trunc(self, k, m, kappa)
             return self.TruncPr(k, m, kappa, signed=signed)
 
-    def Norm(self, k, f, kappa=None, simplex_flag=False):
-        return library.Norm(self, k, f, kappa, simplex_flag)
-
     def __truediv__(self, other):
         """ Secret fixed-point division.
 
@@ -2923,10 +2939,6 @@ class sint(_secret, _int):
     def trunc_zeros(self, n_zeros, bit_length=None, signed=True):
         bit_length = bit_length or program.bit_length
         return comparison.TruncZeros(self, bit_length, n_zeros, signed)
-
-    @staticmethod
-    def two_power(n, size=None):
-        return floatingpoint.two_power(n)
 
     def split_to_n_summands(self, length, n):
         comparison.require_ring_size(length, 'splitting')
@@ -3180,10 +3192,6 @@ class sgf2n(_secret, _gf2n):
     clear_type = cgf2n
     reg_type = 'sg'
     long_one = staticmethod(lambda: 1)
-
-    @classmethod
-    def get_type(cls, length):
-        return cls
 
     @classmethod
     def get_raw_input_from(cls, player):
@@ -4683,13 +4691,9 @@ class _fix(_single):
         other = self.coerce(other)
         assert self.k == other.k
         assert self.f == other.f
-        if isinstance(other, _fix):
+        if isinstance(other, (_fix, cfix)):
             v = library.FPDiv(self.v, other.v, self.k, self.f, self.kappa,
                               nearest=self.round_nearest)
-        elif isinstance(other, cfix):
-            v = library.sint_cint_division(self.v, other.v, self.k, self.f,
-                                           self.kappa,
-                                           nearest=self.round_nearest)
         else:
             raise TypeError('Incompatible fixed point types in division')
         return self._new(v, k=self.k, f=self.f)
