@@ -2967,11 +2967,11 @@ def apply_padding(input_shape, kernel_size, strides, padding):
     if isinstance(padding, int):
         padding = [padding, padding]
     if isinstance(padding, (tuple, list)):
-        input_shape = [x + sum(padding) for x in input_shape]
+        input_shape = [input_shape[i] + 2*padding[i] for i in range(len(input_shape))]
         padding = 'valid'
     if padding.lower() == 'valid':
-        res = (input_shape[0] - kernel_size[0] + 1) // strides[0], \
-            (input_shape[1] - kernel_size[1] + 1) // strides[1],
+        res = (input_shape[0] - kernel_size[0]) // strides[0] + 1, \
+            (input_shape[1] - kernel_size[1]) // strides[1] + 1,
         assert min(res) > 0, (input_shape, kernel_size, strides, padding)
         return res
     elif padding.lower() == 'same':
