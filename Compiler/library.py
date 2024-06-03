@@ -1105,7 +1105,7 @@ def map_reduce(n_threads, n_parallel, n_loops, initializer, reducer, \
         prog.free_later()
         prog.prevent_breaks = prevent_breaks
         if len(state):
-            if thread_rounds:
+            if not util.is_zero(thread_rounds):
                 for i in range(n_threads - remainder):
                     state = reducer(Array(len(state), state_type, \
                                               args[remainder + i][1]), state)
