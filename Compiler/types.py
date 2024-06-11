@@ -2668,12 +2668,16 @@ class sint(_secret, _int):
         self._store_in_mem(address, stms, stmsi)
 
     @classmethod
-    def direct_matrix_mul(cls, A, B, n, m, l, reduce=None, indices=None):
+    def direct_matrix_mul(cls, A, B, n, m, l, reduce=None, indices=None, indices_values=None):
         if indices is None:
             indices = [regint.inc(i) for i in (n, m, m, l)]
+            indices_values = [list(range(i)) for i in (n, m, m, l)]
         res = cls(size=indices[0].size * indices[3].size)
         matmulsm(res, regint(A), regint(B), len(indices[0]), len(indices[1]),
-                 len(indices[3]), *(list(indices) + [m, l]))
+                 len(indices[3]), *(list(indices) + [m, l]),
+                 first_factor_base_addresses=[A],
+                 second_factor_base_addresses=[B],
+                 indices_values=indices_values)
         return res
 
     @vectorize_init

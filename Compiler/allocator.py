@@ -581,6 +581,41 @@ class Merger:
                 keep_text_order(instr, n)
             elif isinstance(instr, RawInputInstruction):
                 keep_merged_order(instr, n, RawInputInstruction)
+            elif isinstance(instr, matmulsm):
+                if options.preserve_mem_order:
+                    strict_mem_access(n, last_mem_read, last_mem_write)
+                else:
+                    if instr.indices_values:
+                        # Determine which values get accessed by the MATMULSM instruction and only add the according dependencies.
+                        for matmul_idx in range(len(instr.first_factor_base_addresses)):
+                            first_base = instr.first_factor_base_addresses[matmul_idx]
+                            second_base = instr.second_factor_base_addresses[matmul_idx]
+
+                            first_factor_row_indices = instr.indices_values[4 * matmul_idx]
+                            first_factor_column_indices = instr.indices_values[4 * matmul_idx + 1]
+                            second_factor_row_indices = instr.indices_values[4 * matmul_idx + 2]
+                            second_factor_column_indices = instr.indices_values[4 * matmul_idx + 3]
+
+                            first_factor_row_length = instr.args[12 * matmul_idx + 10]
+                            second_factor_row_length = instr.args[12 * matmul_idx + 11]
+
+                            for i in range(instr.args[12 * matmul_idx + 3]):
+                                for j in range(instr.args[12 * matmul_idx + 5]):
+                                    for k in range(instr.args[12 * matmul_idx + 4]):
+                                        first_factor_addr = first_base + \
+                                                            first_factor_row_length * first_factor_row_indices[i] + \
+                                                            first_factor_column_indices[k]
+                                        handle_mem_access(first_factor_addr, 's', last_mem_read_of, last_mem_write_of)
+
+                                        second_factor_addr = second_base + \
+                                                             second_factor_row_length * second_factor_row_indices[k] + \
+                                                             second_factor_column_indices[j]
+                                        handle_mem_access(second_factor_addr, 's', last_mem_read_of, last_mem_write_of)
+                    else:
+                        # If the accessed values cannot be determined, be cautious I guess.
+                        for i in last_mem_write_of.values():
+                            for j in i:
+                                add_edge(j, n)
 
             if isinstance(instr, merge_classes):
                 open_nodes.add(n)
@@ -622,13 +657,6 @@ class Merger:
                     strict_mem_access(n, scope.write, scope.read)
                 if not options.preserve_mem_order:
                     mem_access(n, instr, last_mem_write_of, last_mem_read_of)
-            elif isinstance(instr, matmulsm):
-                if options.preserve_mem_order:
-                    strict_mem_access(n, last_mem_read, last_mem_write)
-                else:
-                    for i in last_mem_write_of.values():
-                        for j in i:
-                            add_edge(j, n)
             # keep I/O instructions in order
             elif isinstance(instr, IOInstruction):
                 if last_print_str is not None:

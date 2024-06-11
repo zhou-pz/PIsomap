@@ -34,7 +34,7 @@ public:
             SubProcessor<T>& processor);
 
     void matmulsm(SubProcessor<T>& processor, MemoryPart<T>& source,
-            const Instruction& instruction, int a, int b);
+            const Instruction& instruction);
     void conv2ds(SubProcessor<T>& processor, const Instruction& instruction);
 };
 
