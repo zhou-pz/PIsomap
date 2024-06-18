@@ -1043,6 +1043,8 @@ class sbitvec(_vec, _bit):
             [self.v[i:i + 8] for i in range(0, len(self.v), 8)]), []))
     def reveal_print_hex(self):
         """ Reveal and print in hexademical (one line per element). """
+        if len(self.v) % 64 != 0:
+            raise CompilerError('only works for lengths divisible by 64')
         for x in self.reverse_bytes().elements():
             x.reveal().print_reg()
     def update(self, other):

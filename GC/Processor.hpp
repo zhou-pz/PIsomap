@@ -394,10 +394,14 @@ void Processor<T>::print_reg(int reg, int n, int size)
 #ifdef DEBUG_VALUES
     cout << "print_reg " << typeid(T).name() << " " << reg << " " << &C[reg] << endl;
 #endif
-    bigint output;
+    out << "Reg[" << reg << "] = 0x" << hex << noshowbase;
     for (int i = 0; i < size; i++)
-        output += bigint((unsigned long)C[reg + i].get()) << (T::default_length * i);
-    out << "Reg[" << reg << "] = " << hex << showbase << output << dec << " # ";
+    {
+        out.fill('0');
+        out.width(16);
+        out << (unsigned long)C[reg + size - 1 - i].get();
+    }
+    out << dec << " # ";
     print_str(n);
     out << endl << flush;
 }
