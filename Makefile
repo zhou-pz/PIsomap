@@ -92,7 +92,7 @@ externalIO: bankers-bonus-client.x
 
 bmr: bmr-program-party.x bmr-program-tparty.x
 
-real-bmr: $(patsubst Machines/%.cpp,%.x,$(wildcard Machines/*-bmr-party.cpp))
+real-bmr: $(patsubst Machines/BMR/%.cpp,%.x,$(wildcard Machines/BMR/*-bmr-party.cpp))
 
 yao: yao-party.x
 
@@ -168,10 +168,10 @@ ot-offline.x: $(OT) $(LIBSIMPLEOT) Machines/TripleMachine.o
 
 gc-emulate.x: $(VM) GC/FakeSecret.o GC/square64.o
 
-bmr-%.x: $(BMR) $(VM) Machines/bmr-%.cpp $(LIBSIMPLEOT)
+bmr-%.x: $(BMR) $(VM) Machines/BMR/bmr-%.cpp $(LIBSIMPLEOT)
 	$(CXX) -o $@ $(CFLAGS) $^ $(BOOST) $(LDLIBS)
 
-%-bmr-party.x: Machines/%-bmr-party.o $(BMR) $(SHAREDLIB) $(MINI_OT)
+%-bmr-party.x: Machines/BMR/%-bmr-party.o $(BMR) $(SHAREDLIB) $(MINI_OT)
 	$(CXX) -o $@ $(CFLAGS) $^ $(BOOST) $(LDLIBS)
 
 bmr-clean:
