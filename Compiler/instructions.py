@@ -2504,14 +2504,10 @@ class matmulsm(matmul_base, base.Mergeable):
     arg_format = itertools.cycle(['sw','ci','ci','int','int','int','ci','ci','ci','ci',
                                   'int','int'])
 
-    first_factor_base_addresses: list[int] | None
-    second_factor_base_addresses: list[int] | None
-    indices_values: list[list[int]] | None
-
     def __init__(self, *args,
-                 first_factor_base_addresses: list[int] | None = None,
-                 second_factor_base_addresses: list[int] | None = None,
-                 indices_values: list[int] | None = None,
+                 first_factor_base_addresses=None,
+                 second_factor_base_addresses=None,
+                 indices_values=None,
                  **kwargs):
         matmul_base.__init__(self, *args, **kwargs)
         for matmul_index in range(len(args) // 12):
@@ -2525,8 +2521,10 @@ class matmulsm(matmul_base, base.Mergeable):
         self.second_factor_base_addresses = second_factor_base_addresses
         self.indices_values = indices_values
 
-        assert len(first_factor_base_addresses) == len(second_factor_base_addresses)
-        assert len(indices_values) == 4 * len(first_factor_base_addresses)
+        if first_factor_base_addresses is not None:
+            assert len(first_factor_base_addresses) == len(second_factor_base_addresses)
+            if indices_values is not None:
+                assert len(indices_values) == 4 * len(first_factor_base_addresses)
 
     def add_usage(self, req_node):
         super(matmulsm, self).add_usage(req_node)

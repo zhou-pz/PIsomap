@@ -15,11 +15,11 @@ d = Matrix.create_from([
 ])
 
 
-def test_array(expected: list[int], actual: Array) -> None:
+def test_array(expected, actual):
     actual = actual.reveal()
     expected = Array.create_from([cint(x) for x in expected])
     @for_range(len(expected))
-    def _(i: cint) -> None:
+    def _(i):
         @if_(actual[i] != expected[i])
         def fail():
             print_ln("Unexpected entry at index %s", i)
@@ -31,14 +31,14 @@ def test_array(expected: list[int], actual: Array) -> None:
             crash()
 
 
-def test_matrix(expected: list[list[int]], actual: Matrix) -> None:
+def test_matrix(expected, actual):
     actual = actual.reveal()
     expected = Matrix.create_from([[cint(x) for x in row] for row in expected])
     @for_range(len(expected))
-    def outer(i: cint) -> None:
+    def outer(i):
 
         @for_range(len(expected[0]))
-        def inner(j: cint) -> None:
+        def inner(j):
             @if_(actual[i][j] != expected[i][j])
             def fail():
                 print_ln("Unexpected entry at index %s,%s", i, j)
@@ -50,7 +50,7 @@ def test_matrix(expected: list[list[int]], actual: Matrix) -> None:
                 crash()
 
 break_point()
-def hacky_array_dot_matrix(arr: Array, mat: Matrix) -> Array:
+def hacky_array_dot_matrix(arr, mat):
     # Arrays sadly do not have a dot function, therefore the array is converted into a 1 times n Matrix by copying memory addresses.
     tmp = sint.Matrix(rows=1, columns=len(arr), address=arr.address)
     result = tmp.dot(mat)
@@ -105,7 +105,7 @@ g.print_reveal_nested()
 # Big matrix tests.
 # These are intended to test matrix multiplications that require multiple batches.
 
-def identity(size: int) -> Matrix:
+def identity(size):
     result = sint.Matrix(rows=size, columns=size)
     result.assign_all(0)
     for i in range(size):
@@ -113,17 +113,17 @@ def identity(size: int) -> Matrix:
     return result
 
 
-def counting_matrix(rows: int, columns: int) -> Matrix:
+def counting_matrix(rows, columns):
     result = sint.Matrix(rows, columns)
     @for_range(rows)
-    def outer(i: cint) -> None:
+    def outer(i):
         @for_range(columns)
-        def inner(j: cint) -> None:
+        def inner(j):
             result[i][j] = i * columns + j
     return result
 
 
-def clear_counting_matrix(rows: int, columns: int) -> list[list[int]]:
+def clear_counting_matrix(rows, columns):
     return [list(range(i * columns, (i + 1) * columns)) for i in range(rows)]
 
 
@@ -145,3 +145,16 @@ stop_timer(7)
 
 test_matrix(clear_counting_matrix(20, 20), d)
 test_matrix(clear_counting_matrix(20, 20), e)
+
+
+start_timer(8)
+d = a.dot(b, n_threads=2)
+stop_timer(8)
+
+test_matrix(clear_counting_matrix(20, 20), d)
+
+start_timer(9)
+M = sint.Matrix(10, 10)
+M.direct_mul(M, indices=[regint(0), regint.inc(10), regint.inc(10),
+                         regint(0)])
+stop_timer(9)

@@ -2673,10 +2673,18 @@ class sint(_secret, _int):
             indices = [regint.inc(i) for i in (n, m, m, l)]
             indices_values = [list(range(i)) for i in (n, m, m, l)]
         res = cls(size=indices[0].size * indices[3].size)
+
+        if isinstance(A, int) and isinstance(B, int):
+            first_factor_base_addresses = [A]
+            second_factor_base_addresses = [B]
+        else:
+            first_factor_base_addresses = None
+            second_factor_base_addresses = None
+
         matmulsm(res, regint(A), regint(B), len(indices[0]), len(indices[1]),
                  len(indices[3]), *(list(indices) + [m, l]),
-                 first_factor_base_addresses=[A],
-                 second_factor_base_addresses=[B],
+                 first_factor_base_addresses=first_factor_base_addresses,
+                 second_factor_base_addresses=second_factor_base_addresses,
                  indices_values=indices_values)
         return res
 
