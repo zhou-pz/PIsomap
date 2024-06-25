@@ -158,3 +158,8 @@ M = sint.Matrix(10, 10)
 M.direct_mul(M, indices=[regint(0), regint.inc(10), regint.inc(10),
                          regint(0)])
 stop_timer(9)
+
+
+start_timer(10)
+sint.Matrix(1000, 1000) * sint.Matrix(1000, 1000)
+stop_timer(10)
