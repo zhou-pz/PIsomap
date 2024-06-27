@@ -1636,10 +1636,8 @@ class Tape:
             :param other: any convertible type
 
             """
-            diff_block = isinstance(other, Tape.Register) and self.block != other.block
             other = type(self)(other)
-            if not diff_block:
-                self.program.start_new_basicblock(name="update")
+            self.program.start_new_basicblock(name="update")
             if self.program != other.program:
                 raise CompilerError(
                     'cannot update register with one from another thread')
