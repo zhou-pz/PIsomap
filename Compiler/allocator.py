@@ -600,15 +600,24 @@ class Merger:
                             first_factor_row_length = instr.args[12 * matmul_idx + 10]
                             second_factor_row_length = instr.args[12 * matmul_idx + 11]
 
-                            # Add dependencies to the first factor.
-                            for i in range(instr.args[12 * matmul_idx + 3]):
-                                if (time.time() - start_time) > 10:
-                                    # Abort building the dependencies if that takes too much time.
-                                    if block.warn_about_mem and not block.parent.warned_about_mem:
-                                        print('WARNING: Order of memory instructions not preserved due to long vector, errors possible')
-                                        block.parent.warned_about_mem = True
-                                    break
+                            # Due to the potentially very large number of inputs on large matrices, adding dependencies to
+                            # all inputs may take a long time. Therefore, we only partially build the dependencies on
+                            # large matrices and output a warning.
+                            # The threshold of 2_250_000 values per matrix is equivalent to multiplying two 1500x1500
+                            # matrices. Experiments showed that multiplying two 1700x1700 matrices requires roughly 10 seconds on an i7-1370P,
+                            # so this threshold should lead to acceptable compile times even on slower processors.
+                            first_factor_total_number_of_values = instr.args[12 * matmul_idx + 3] * instr.args[12 * matmul_idx + 4]
+                            second_factor_total_number_of_values = instr.args[12 * matmul_idx + 4] * instr.args[12 * matmul_idx + 5]
+                            max_dependencies_per_matrix = 1500**2
+                            if first_factor_total_number_of_values > max_dependencies_per_matrix or second_factor_total_number_of_values > max_dependencies_per_matrix:
+                                if block.warn_about_mem and not block.parent.warned_about_mem:
+                                    print('WARNING: Order of memory instructions not preserved due to long vector, errors possible')
+                                    block.parent.warned_about_mem = True
 
+                            # Add dependencies to the first factor.
+                            # If the size of the matrix exceeds the max_dependencies_per_matrix, only a limited number
+                            # of rows will be processed.
+                            for i in range(min(instr.args[12 * matmul_idx + 3], max_dependencies_per_matrix // instr.args[12 * matmul_idx + 4] + 1)):
                                 for k in range(instr.args[12 * matmul_idx + 4]):
                                     first_factor_addr = first_base + \
                                                         first_factor_row_length * first_factor_row_indices[i] + \
@@ -616,7 +625,9 @@ class Merger:
                                     handle_mem_access(first_factor_addr, 's', last_mem_read_of, last_mem_write_of)
 
                             # Add dependencies to the second factor.
-                            for k in range(instr.args[12 * matmul_idx + 4]):
+                            # If the size of the matrix exceeds the max_dependencies_per_matrix, only a limited number
+                            # of rows will be processed.
+                            for k in range(min(instr.args[12 * matmul_idx + 4], max_dependencies_per_matrix // instr.args[12 * matmul_idx + 5] + 1)):
                                 if (time.time() - start_time) > 10:
                                     # Abort building the dependencies if that takes too much time.
                                     if block.warn_about_mem and not block.parent.warned_about_mem:
