@@ -4601,9 +4601,13 @@ class _fix(_single):
         elif isinstance(_v, (list, tuple)):
             self.v = self.int_type(list(self.conv(x).v for x in _v))
         elif isinstance(_v, personal):
-            assert _v._v.f == f
-            assert _v._v.k == k
-            self.v = self.int_type(personal(_v.player, _v._v.v))
+            f_diff = _v._v.f - f
+            v = _v._v.v
+            if f_diff < 0:
+                v <<= -f_diff
+            elif f_diff > 0:
+                v >>= f_diff
+            self.v = self.int_type(personal(_v.player, v))
         else:
             raise CompilerError('cannot convert %s to sfix' % _v)
         if not isinstance(self.v, self.int_type):
