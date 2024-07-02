@@ -77,8 +77,12 @@ public:
   void mulrs(const vector<int>& reg);
   void dotprods(const vector<int>& reg, int size);
   void matmuls(const vector<T>& source, const Instruction& instruction);
-  void matmulsm(const MemoryPart<T>& source, const Instruction& instruction, size_t a,
-      size_t b);
+  void matmulsm(const MemoryPart<T>& source, const Instruction& instruction);
+
+  void matmulsm_finalize_batch(vector<int>::const_iterator startMatmul, int startI, int startJ,
+                               vector<int>::const_iterator endMatmul,
+                               int endI, int endJ);
+
   void conv2ds(const Instruction& instruction);
 
   void secure_shuffle(const Instruction& instruction);

@@ -111,8 +111,8 @@ public:
 
     template<int = 0>
     void matmulsm(SubProcessor<T> & proc, MemoryPart<T>& source,
-            const Instruction& instruction, int a, int b)
-    { proc.matmulsm(source, instruction, a, b); }
+            const Instruction& instruction)
+    { proc.matmulsm(source, instruction); }
 
     template<int = 0>
     void conv2ds(SubProcessor<T>& proc, const Instruction& instruction)

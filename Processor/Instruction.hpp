@@ -323,8 +323,8 @@ void BaseInstruction::parse_operands(istream& s, int pos, int file_pos)
         get_vector(num_var_args, start, s);
         break;
       case MATMULSM:
-        get_ints(r, s, 3);
-        get_vector(9, start, s);
+        num_var_args = get_int(s);
+        get_vector(num_var_args, start, s);
         break;
 
       // read from file, input is opcode num_args, 
@@ -1117,8 +1117,7 @@ inline void Instruction::execute(Processor<sint, sgf2n>& Proc) const
         Proc.Procp.matmuls(Proc.Procp.get_S(), *this);
         return;
       case MATMULSM:
-        Proc.Procp.protocol.matmulsm(Proc.Procp, Proc.machine.Mp.MS, *this,
-            Proc.read_Ci(r[1]), Proc.read_Ci(r[2]));
+        Proc.Procp.protocol.matmulsm(Proc.Procp, Proc.machine.Mp.MS, *this);
         return;
       case CONV2DS:
         Proc.Procp.protocol.conv2ds(Proc.Procp, *this);
