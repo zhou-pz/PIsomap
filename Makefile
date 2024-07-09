@@ -52,7 +52,7 @@ endif
 endif
 
 # used for dependency generation
-OBJS = $(patsubst %.cpp,%.o,$(wildcard */*.cpp)) $(STATIC_OTE)
+OBJS = $(patsubst %.cpp,%.o,$(wildcard */*.cpp */*/*.cpp)) $(STATIC_OTE)
 DEPS := $(wildcard */*.d */*/*.d)
 
 # never delete
@@ -150,13 +150,17 @@ static/%.x: Machines/%.o $(LIBRELEASE) $(LIBSIMPLEOT) local/lib/libcryptoTools.a
 	$(MAKE) static-dir
 	$(CXX) -o $@ $(CFLAGS) $^ -Wl,-Map=$<.map -Wl,-Bstatic -static-libgcc -static-libstdc++ $(LIBRELEASE) -llibOTe -lcryptoTools $(LIBSIMPLEOT) $(BOOST) $(LDLIBS) -Wl,-Bdynamic -ldl
 
+static/%.x: Machines/BMR/%.o $(LIBRELEASE) $(LIBSIMPLEOT) local/lib/libcryptoTools.a local/lib/liblibOTe.a
+	$(MAKE) static-dir
+	$(CXX) -o $@ $(CFLAGS) $^ -Wl,-Map=$<.map -Wl,-Bstatic -static-libgcc -static-libstdc++ $(LIBRELEASE) -llibOTe -lcryptoTools $(LIBSIMPLEOT) $(BOOST) $(LDLIBS) -Wl,-Bdynamic -ldl
+
 static/%.x: ECDSA/%.o ECDSA/P256Element.o $(VMOBJS) $(OT) $(LIBSIMPLEOT)
 	$(CXX) $(CFLAGS) -o $@ $^ -Wl,-Map=$<.map -Wl,-Bstatic -static-libgcc -static-libstdc++ $(BOOST) $(LDLIBS) -Wl,-Bdynamic -ldl
 
 static-dir:
 	@ mkdir static 2> /dev/null; true
 
-static-release: static-dir $(patsubst Machines/%.cpp, static/%.x, $(wildcard Machines/*-party.cpp)) static/emulate.x
+static-release: static-dir $(patsubst Machines/%.cpp, static/%.x, $(wildcard Machines/*-party.cpp))  $(patsubst Machines/BMR/%.cpp, static/%.x, $(wildcard Machines/BMR/*-party.cpp)) static/emulate.x
 
 Fake-ECDSA.x: ECDSA/Fake-ECDSA.cpp ECDSA/P256Element.o $(COMMON) Processor/PrepBase.o
 	$(CXX) -o $@ $^ $(CFLAGS) $(LDLIBS)
@@ -352,7 +356,7 @@ cmake:
 	wget https://github.com/Kitware/CMake/releases/download/v3.24.1/cmake-3.24.1.tar.gz
 	tar xzvf cmake-3.24.1.tar.gz
 	cd cmake-3.24.1; \
-	./bootstrap --parallel=8 --prefix=../local && make && make install
+	./bootstrap --parallel=8 --prefix=../local && make -j8 && make install
 
 mac-setup: mac-machine-setup
 	brew install openssl boost libsodium gmp yasm ntl cmake

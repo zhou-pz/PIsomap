@@ -135,14 +135,24 @@ void BufferBase::prune()
 
 void BufferBase::purge()
 {
-    if (file and not is_pipe())
+    bool verbose = OnlineOptions::singleton.has_option("verbose_purge");
+    if (not filename.empty() and not is_pipe())
     {
-#ifdef VERBOSE
-        cerr << "Removing " << filename << endl;
-#endif
+        if (verbose)
+            cerr << "Removing " << filename << endl;
         unlink(filename.c_str());
-        file->close();
-        file = 0;
+        if (file)
+        {
+            file->close();
+            file = 0;
+        }
+    }
+    else if (verbose)
+    {
+        cerr << "Not removing " << filename;
+        if (is_pipe())
+            cerr << "because it's a pipe";
+        cerr << endl;
     }
 }
 

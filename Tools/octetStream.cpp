@@ -124,6 +124,14 @@ bool octetStream::equals(const octetStream& a) const
 }
 
 
+void octetStream::flush_bits()
+{
+  bits[0].n = 0;
+  store_int<1>(bits[0].buffer);
+  bits[0].buffer = 0;
+}
+
+
 void octetStream::append_random(size_t num)
 {
   randombytes_buf(append(num), num);
@@ -226,7 +234,7 @@ void octetStream::input(istream& s)
     throw IO_Error("not enough data");
 }
 
-void octetStream::output(ostream& s)
+void octetStream::output(ostream& s) const
 {
   s.write((char*)&len, sizeof(len));
   s.write((char*)data, len);

@@ -76,7 +76,7 @@ class AllocRange:
             self.top += size
             self.limit = max(self.limit, self.top)
             if res >= REG_MAX:
-                raise RegisterOverflowError()
+                raise RegisterOverflowError(size)
             return res
 
     def free(self, base, size):
@@ -209,7 +209,8 @@ class StraightlineAllocator:
                 for x in itertools.chain(dup.duplicates, base.duplicates):
                     to_check.add(x)
 
-        if reg not in self.program.base_addresses:
+        if reg not in self.program.base_addresses \
+           and not isinstance(inst, call_arg):
             free.free(base)
         if inst.is_vec() and base.vector:
             self.defined[base] = inst
@@ -608,7 +609,8 @@ class Merger:
                             # so this threshold should lead to acceptable compile times even on slower processors.
                             first_factor_total_number_of_values = instr.args[12 * matmul_idx + 3] * instr.args[12 * matmul_idx + 4]
                             second_factor_total_number_of_values = instr.args[12 * matmul_idx + 4] * instr.args[12 * matmul_idx + 5]
-                            max_dependencies_per_matrix = 1500**2
+                            max_dependencies_per_matrix = \
+                                self.block.parent.program.budget
                             if first_factor_total_number_of_values > max_dependencies_per_matrix or second_factor_total_number_of_values > max_dependencies_per_matrix:
                                 if block.warn_about_mem and not block.parent.warned_about_mem:
                                     print('WARNING: Order of memory instructions not preserved due to long vector, errors possible')
