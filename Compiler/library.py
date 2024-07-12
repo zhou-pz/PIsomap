@@ -1698,30 +1698,30 @@ def else_(body):
         end_if()
 
 def and_(*terms):
-    res = regint(0)
-    for term in terms:
-        if_then(term())
-    old_res = res
-    res = regint(1)
-    res.link(old_res)
-    for term in terms:
-        else_then()
-        end_if()
     def load_result():
+        res = regint(0)
+        for term in terms:
+            if_then(term())
+        old_res = res
+        res = regint(1)
+        res.link(old_res)
+        for term in terms:
+            else_then()
+            end_if()
         return res
     return load_result
 
 def or_(*terms):
-    res = regint(1)
-    for term in terms:
-        if_then(term())
-        else_then()
-    old_res = res
-    res = regint(0)
-    res.link(old_res)
-    for term in terms:
-        end_if()
     def load_result():
+        res = regint(1)
+        for term in terms:
+            if_then(term())
+            else_then()
+        old_res = res
+        res = regint(0)
+        res.link(old_res)
+        for term in terms:
+            end_if()
         return res
     return load_result
 
