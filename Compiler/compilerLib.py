@@ -618,6 +618,12 @@ class Compiler:
 
         import threading
         import random
+        import io
+
+        def run_and_capture_outputs(outputs, fn, i):
+            out = fn(i)
+            outputs[i] = out
+
         threads = []
         for i in range(len(hosts)):
             threads.append(threading.Thread(target=run_with_error, args=(i,)))
@@ -628,6 +634,10 @@ class Compiler:
 
         # execution
         threads = []
+        outputs = []
+        # tidy up threads output
+        for i in range(len(connections)):
+            outputs += [""]
         # random port numbers to avoid conflict
         port = 10000 + random.randrange(40000)
         if '@' in hostnames[0]:
@@ -642,9 +652,11 @@ class Compiler:
             run = lambda i: connections[i].run(
                 "cd %s; ./%s -p %d %s -h %s -pn %d %s" % \
                 (destinations[i], vm, i, self.prog.name, party0, port,
-                 ' '.join(args + N)))
-            threads.append(threading.Thread(target=run, args=(i,)))
+                 ' '.join(args + N)), hide=True)
+            threads.append(threading.Thread(target=run_and_capture_outputs, args=(outputs, run, i,)))
         for thread in threads:
             thread.start()
         for thread in threads:
             thread.join()
+        for out in outputs:
+            print(out)
