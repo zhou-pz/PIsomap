@@ -1459,7 +1459,7 @@ def while_loop(loop_body, condition, arg=None, g=None):
             result = loop_body(arg)
             if isinstance(result, MemValue):
                 result = result.read()
-            arg.update(result)
+            arg.link(type(arg)(result))
             return condition(result)
     if not isinstance(pre_condition, (bool,int)) or pre_condition:
         if_statement(pre_condition, lambda: do_while(loop_fn, g=g))
