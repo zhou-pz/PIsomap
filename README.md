@@ -366,11 +366,14 @@ There are three ways of running computation:
    ```
 
    If <path> does not start with `/` (only one `/` after the
-   hostname), the path with be relative to the home directory of the
+   hostname), the path will be relative to the home directory of the
    user. Otherwise (`//` after the hostname it will be relative to the
    root directory.
 
    It is assumed that the SSH login is possible without password.
+
+   Adding the compiler option `-t` (`--tidy_output`) groups the output prints by
+   party; however, it delays the outputs until the execution is finished.
 
 Even with the integrated execution it is important to keep in mind
 that there are two different phases, the compilation and the run-time

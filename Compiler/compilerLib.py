@@ -240,6 +240,13 @@ class Compiler:
             dest="verbose",
             help="more verbose output",
         )
+        parser.add_option(
+            "-t",
+            "--tidy_output",
+            action="store_true",
+            dest="tidy_output",
+            help="output prints tidy and grouped by party (note: it delays outputs)",
+        )
         if self.execute:
             parser.add_option(
                 "-E",
@@ -634,10 +641,14 @@ class Compiler:
 
         # execution
         threads = []
-        outputs = []
-        # tidy up threads output
-        for i in range(len(connections)):
-            outputs += [""]
+
+        # tidy up output prints
+        hide_option = False
+        if self.options.tidy_output:
+            outputs = []
+            for i in range(len(connections)):
+                outputs += [""]
+            hide_option = True
         # random port numbers to avoid conflict
         port = 10000 + random.randrange(40000)
         if '@' in hostnames[0]:
@@ -652,11 +663,15 @@ class Compiler:
             run = lambda i: connections[i].run(
                 "cd %s; ./%s -p %d %s -h %s -pn %d %s" % \
                 (destinations[i], vm, i, self.prog.name, party0, port,
-                 ' '.join(args + N)), hide=True)
-            threads.append(threading.Thread(target=run_and_capture_outputs, args=(outputs, run, i,)))
+                 ' '.join(args + N)), hide=hide_option)
+            if self.options.tidy_output:
+                threads.append(threading.Thread(target=run_and_capture_outputs, args=(outputs, run, i,)))
+            else:
+                threads.append(threading.Thread(target=run, args=(i,)))
         for thread in threads:
             thread.start()
         for thread in threads:
             thread.join()
-        for out in outputs:
-            print(out)
+        if self.options.tidy_output:
+            for out in outputs:
+                print(out)
