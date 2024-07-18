@@ -240,13 +240,6 @@ class Compiler:
             dest="verbose",
             help="more verbose output",
         )
-        parser.add_option(
-            "-t",
-            "--tidy_output",
-            action="store_true",
-            dest="tidy_output",
-            help="output prints tidy and grouped by party (note: it delays outputs)",
-        )
         if self.execute:
             parser.add_option(
                 "-E",
@@ -259,6 +252,13 @@ class Compiler:
                 "--hostfile",
                 dest="hostfile",
                 help="hosts to execute with",
+            )
+            parser.add_option(
+                "-t",
+                "--tidy_output",
+                action="store_true",
+                dest="tidy_output",
+                help="make output prints tidy and grouped by party (note: delays the prints)",
             )
         else:
             parser.add_option(
