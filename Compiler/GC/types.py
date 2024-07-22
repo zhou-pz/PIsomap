@@ -789,7 +789,8 @@ class sbitvec(_vec, _bit, _binary):
             @classmethod
             def load_mem(cls, address, size=None):
                 if isinstance(address, int) or len(address) == 1:
-                    address = [address + i for i in range(size or 1)]
+                    address = [address + i * cls.mem_size()
+                               for i in range(size or 1)]
                 else:
                     assert size == None
                 return cls(
@@ -799,9 +800,7 @@ class sbitvec(_vec, _bit, _binary):
                 for x in self.v:
                     if not util.is_constant(x):
                         size = max(size, x.n)
-                if isinstance(address, int):
-                    address = range(address, address + size)
-                elif len(address) == 1:
+                if isinstance(address, int) or len(address) == 1:
                     address = [address + i * self.mem_size()
                                for i in range(size)]
                 else:
