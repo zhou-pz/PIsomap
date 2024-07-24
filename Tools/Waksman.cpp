@@ -24,7 +24,7 @@ vector<vector<bool> > Waksman::configure(const vector<int>& perm)
         return {{perm[0] == 1, perm[0] == 1}};
 
     vector<bool> I(n / 2);
-    vector<char> O(n / 2, -1);
+    vector<int> O(n / 2, -1);
     vector<int>  p0(n / 2, -1), p1(n / 2, -1), inv_perm(n);
 
     for (int i = 0; i < n; i++)
