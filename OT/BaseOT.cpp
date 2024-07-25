@@ -246,6 +246,10 @@ void BaseOT::exec_base(bool new_receiver_inputs)
         #endif
     }
 
+    if (ot_role & SENDER)
+        for (int i = 0; i < nOT; i++)
+            assert(sender_inputs.at(i).at(0) != sender_inputs.at(i).at(1));
+
     // Hash with counter to avoid collisions
     for (int i = 0; i < nOT; i++)
     {
@@ -256,8 +260,16 @@ void BaseOT::exec_base(bool new_receiver_inputs)
                 hash_with_id(sender_inputs.at(i).at(j), i);
     }
 
+    if (ot_role & SENDER)
+        for (int i = 0; i < nOT; i++)
+            assert(sender_inputs.at(i).at(0) != sender_inputs.at(i).at(1));
+
     // Set PRG seeds
     set_seeds();
+
+    if (ot_role & SENDER)
+        for (int i = 0; i < nOT; i++)
+            assert(sender_inputs.at(i).at(0) != sender_inputs.at(i).at(1));
 }
 
 void BaseOT::hash_with_id(BitVector& bits, long id)
