@@ -253,6 +253,13 @@ class Compiler:
                 dest="hostfile",
                 help="hosts to execute with",
             )
+            parser.add_option(
+                "-t",
+                "--tidy_output",
+                action="store_true",
+                dest="tidy_output",
+                help="make output prints tidy and grouped by party (note: delays the prints)",
+            )
         else:
             parser.add_option(
                 "-E",
@@ -618,6 +625,12 @@ class Compiler:
 
         import threading
         import random
+        import io
+
+        def run_and_capture_outputs(outputs, fn, i):
+            out = fn(i)
+            outputs[i] = out
+
         threads = []
         for i in range(len(hosts)):
             threads.append(threading.Thread(target=run_with_error, args=(i,)))
@@ -628,6 +641,14 @@ class Compiler:
 
         # execution
         threads = []
+
+        # tidy up output prints
+        hide_option = False
+        if self.options.tidy_output:
+            outputs = []
+            for i in range(len(connections)):
+                outputs += [""]
+            hide_option = True
         # random port numbers to avoid conflict
         port = 10000 + random.randrange(40000)
         if '@' in hostnames[0]:
@@ -642,9 +663,15 @@ class Compiler:
             run = lambda i: connections[i].run(
                 "cd %s; ./%s -p %d %s -h %s -pn %d %s" % \
                 (destinations[i], vm, i, self.prog.name, party0, port,
-                 ' '.join(args + N)))
-            threads.append(threading.Thread(target=run, args=(i,)))
+                 ' '.join(args + N)), hide=hide_option)
+            if self.options.tidy_output:
+                threads.append(threading.Thread(target=run_and_capture_outputs, args=(outputs, run, i,)))
+            else:
+                threads.append(threading.Thread(target=run, args=(i,)))
         for thread in threads:
             thread.start()
         for thread in threads:
             thread.join()
+        if self.options.tidy_output:
+            for out in outputs:
+                print(out)
