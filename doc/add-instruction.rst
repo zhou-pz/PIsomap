@@ -76,7 +76,7 @@ instructions, a base version for single registers and a vectorized
 version, which is called as follows in the example for length
 :py:obj:`n`::
 
-  vprefixsum(n, result, operand)
+  vprefixsums(n, result, operand)
 
 At the higher level, the vector length is usually derived from the
 input using the :py:obj:`vectorize` decorator as in
