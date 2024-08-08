@@ -6419,7 +6419,7 @@ class Array(_vectorizable):
            program.options.binary:
             library.loopy_odd_even_merge_sort(self, n_threads=n_threads)
         else:
-            if n_threads or 1 > 1:
+            if (n_threads or 1) > 1:
                 raise CompilerError('multi-threaded sorting only implemented '
                                     'with Batcher\'s odd-even mergesort')
             from . import sorting
