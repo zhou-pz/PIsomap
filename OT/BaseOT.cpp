@@ -248,7 +248,17 @@ void BaseOT::exec_base(bool new_receiver_inputs)
 
     if (ot_role & SENDER)
         for (int i = 0; i < nOT; i++)
-            assert(sender_inputs.at(i).at(0) != sender_inputs.at(i).at(1));
+        {
+            if(sender_inputs.at(i).at(0) == sender_inputs.at(i).at(1))
+            {
+                string error = "Sender outputs are the same at " + to_string(i)
+                        + ": " + sender_inputs[i][0].str();
+#ifdef NO_AVX_OT
+                error += ". Try compiling with 'AVX_OT = 0' in CONFIG.mine";
+#endif
+                throw runtime_error(error);
+            }
+        }
 
     // Hash with counter to avoid collisions
     for (int i = 0; i < nOT; i++)
