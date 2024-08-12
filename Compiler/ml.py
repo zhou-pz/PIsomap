@@ -3255,7 +3255,7 @@ def layers_from_torch(model, data_input_shape, batch_size, input_via=None,
 
     import torch
 
-    def process(item, inputs, input_shape, args):
+    def process(item, inputs, input_shape, args, kwargs={}):
         if item == torch.cat:
             if len(inputs) > 1:
                 layers.append(
@@ -3264,7 +3264,17 @@ def layers_from_torch(model, data_input_shape, batch_size, input_via=None,
         elif item == operator.add:
             layers.append(Add(inputs))
             return
-        elif item == torch.flatten:
+        elif item in (torch.flatten, 'flatten', 'size'):
+            return
+        elif item == 'view':
+            assert -1 in args or \
+                reduce(operator.mul, args) == reduce(operator.mul, input_shape)
+            return
+        elif item == torch.nn.functional.avg_pool2d:
+            layers.append(FixAveragePool2d(input_shape, None, args[1],
+                                           kwargs.get('stride', args[1]),
+                                           kwargs.get('padding', 0)))
+            input_shape = layers[-1].Y.shape
             return
         # single-input layers from here
         if inputs and len(inputs) > 1:
@@ -3380,7 +3390,12 @@ def layers_from_torch(model, data_input_shape, batch_size, input_via=None,
                 args = layer.args[0]
             else:
                 args = layer.args[0],
-            inputs = [named_layers[x] for x in args]
+            inputs = []
+            try:
+                for x in args:
+                    inputs.append(named_layers[x])
+            except KeyError:
+                pass
             if len(inputs) == 1:
                 if isinstance(inputs[0], (Dropout, BatchNorm)):
                     input_shape = inputs[0].inputs[0].Y.shape
@@ -3388,7 +3403,7 @@ def layers_from_torch(model, data_input_shape, batch_size, input_via=None,
                     input_shape = inputs[0]._Y.shape
             else:
                 input_shape = None
-        process(target, inputs, input_shape, layer.args)
+        process(target, inputs, input_shape, layer.args, layer.kwargs)
         if layers:
             named_layers[layer] = layers[-1]
 
