@@ -39,6 +39,8 @@ class BaseOT
     static void hash_with_id(BitVector& bits, long id);
 
 public:
+    static int avx;
+
     /// Receiver choice bits
 	BitVector receiver_inputs;
 	/// Sender inputs
@@ -115,6 +117,8 @@ protected:
 
 	bool is_sender() { return (bool) (ot_role & SENDER); }
 	bool is_receiver() { return (bool) (ot_role & RECEIVER); }
+
+	bool use_avx();
 
 	/// CPU-specific instantiation of Simplest OT using Curve25519
 	template<class T, class U>

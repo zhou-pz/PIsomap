@@ -2,11 +2,16 @@
 #include "Tools/random.h"
 #include "Tools/benchmarking.h"
 #include "Tools/Bundle.h"
+#include "Processor/OnlineOptions.h"
 
 #include <stdio.h>
 #include <iostream>
 #include <fstream>
 #include <pthread.h>
+
+#ifdef __linux__
+#include <cpuid.h>
+#endif
 
 extern "C" {
 #ifndef NO_AVX_OT
@@ -106,10 +111,31 @@ void receiver_keygen(ref10_RECEIVER* r, unsigned char (*keys)[HASHBYTES])
     ref10_receiver_keygen(r, keys);
 }
 
+int BaseOT::avx = -1;
+
+bool BaseOT::use_avx()
+{
+    if (avx == -1)
+    {
+        avx = cpu_has_avx(true);
+#if defined(__linux__) and defined(__x86_64__)
+        int info[4];
+        __cpuid(0x80000003, info[0], info[1], info[2], info[3]);
+        string str((char*) info, 16);
+        if (OnlineOptions::singleton.has_option("debug_cpu"))
+            cerr << "CPU: " << str << endl;
+        if (str.find("Gold 63") != string::npos)
+            avx = 0;
+#endif
+    }
+
+    return avx;
+}
+
 void BaseOT::exec_base(bool new_receiver_inputs)
 {
 #ifndef NO_AVX_OT
-    if (cpu_has_avx(true))
+    if (use_avx())
         exec_base<SIMPLEOT_SENDER, SIMPLEOT_RECEIVER>(new_receiver_inputs);
     else
 #endif
@@ -254,7 +280,10 @@ void BaseOT::exec_base(bool new_receiver_inputs)
                 string error = "Sender outputs are the same at " + to_string(i)
                         + ": " + sender_inputs[i][0].str();
 #ifdef NO_AVX_OT
-                error += ". Try compiling with 'AVX_OT = 0' in CONFIG.mine";
+                error += "This is a known problem with some Xeon CPUs. ";
+                error += "We would appreciate if you report the output of "
+                        "'cat /proc/cpuinfo | grep name'. ";
+                error += "Try compiling with 'AVX_SIMPLEOT = 0' in CONFIG.mine";
 #endif
                 throw runtime_error(error);
             }
