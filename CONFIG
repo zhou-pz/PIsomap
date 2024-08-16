@@ -48,7 +48,7 @@ ARCH =
 AVX_OT = 0
 endif
 
-AVX_SIMPLEOT = AVX_OT
+AVX_SIMPLEOT := $(AVX_OT)
 
 ifeq ($(OS), Darwin)
 BREW_CFLAGS += -I/usr/local/opt/openssl/include -I`brew --prefix`/opt/openssl/include -I`brew --prefix`/include
