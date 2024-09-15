@@ -9,7 +9,7 @@
 #include <fstream>
 #include <pthread.h>
 
-#ifdef __linux__
+#if defined(__linux__) and defined(__x86_64__)
 #include <cpuid.h>
 #endif
 
