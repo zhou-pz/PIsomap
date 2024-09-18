@@ -2316,6 +2316,8 @@ class Optimizer:
             if self.time_layers:
                 start_timer(100 + i)
             if i != len(self.layers) - 1 or run_last:
+                for theta in layer.thetas():
+                    theta.alloc()
                 layer.forward(batch=self.batch_for(layer, batch),
                               training=training)
                 if self.print_random_update:
