@@ -403,7 +403,7 @@ class FunctionCallTape(FunctionTape):
         super(FunctionTape, self).__init__(*args, **kwargs)
         self.instances = {}
     def __call__(self, *args, **kwargs):
-        key = ()
+        key = (get_program(),)
         def process_for_key(arg):
             nonlocal key
             if isinstance(arg, types._vectorizable):
