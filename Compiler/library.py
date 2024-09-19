@@ -971,7 +971,8 @@ def for_range_opt(start, stop=None, step=None, budget=None):
     if stop is not None:
         start, stop, step = _range_prep(start, stop, step)
         def wrapper(loop_body):
-            n_loops = (step - 1 + stop - start) // step
+            range_ = stop-start
+            n_loops = ((range_% step) != 0) + range_ // step
             @for_range_opt(n_loops, budget=budget)
             def _(i):
                 return loop_body(start + i * step)
