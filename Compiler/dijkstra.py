@@ -246,10 +246,12 @@ def dijkstra(source, edges, e_index, oram_type, n_loops=None, int_type=None):
     last_edge = MemValue(basic_type(1))
     i_edge = MemValue(int_type(0))
     u = MemValue(basic_type(0))
+    running = MemValue(basic_type(1))
     @for_range(n_loops or edges.size)
     def f(i):
         print_ln('loop %s', i)
         time()
+        running.write(last_edge.bit_not().bit_or(Q.size > 0).bit_and(running))
         u.write(if_else(last_edge, Q.pop(last_edge), u))
         #visited.access(u, True, last_edge)
         i_edge.write(int_type(if_else(last_edge, e_index[u], i_edge)))
@@ -261,6 +263,7 @@ def dijkstra(source, edges, e_index, oram_type, n_loops=None, int_type=None):
         dv, not_visited = dist.read(v)
         # relying on default dv negative here
         is_shorter = (alt < int_type(dv[0])) + not_visited
+        is_shorter *= running
         dist.access(v, (basic_type(alt), u), is_shorter)
         #previous.access(v, u, is_shorter)
         Q.update(v, basic_type(alt), is_shorter)
