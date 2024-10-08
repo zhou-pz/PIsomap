@@ -737,6 +737,9 @@ class sbitvec(_vec, _bit, _binary):
         :py:obj:`v` and the columns by calling :py:obj:`elements`.
         """
         class sbitvecn(cls, _structure):
+            @staticmethod
+            def get_type(n):
+                return cls.get_type(n)
             @classmethod
             def malloc(cls, size, creator_tape=None):
                 return sbit.malloc(
