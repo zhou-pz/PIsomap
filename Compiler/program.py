@@ -231,6 +231,7 @@ class Program(object):
             self.options.cisc = not self.options.optimize_hard
         self.use_tape_calls = True
         self.force_cisc_tape = False
+        self.have_warned_trunc_pr = False
 
         Program.prog = self
         from . import comparison, instructions, instructions_base, types
@@ -652,6 +653,14 @@ class Program(object):
     @use_trunc_pr.setter
     def use_trunc_pr(self, change):
         self._use_trunc_pr = change
+
+    def trunc_pr_warning(self):
+        if not self.have_warned_trunc_pr:
+            print("WARNING: Probabilistic truncation leaks some information, "
+                  "see https://eprint.iacr.org/2024/1127 for discussion. "
+                  "Use 'sfix.round_nearest = True' to deactivate this for "
+                  "fixed-point operations.")
+        self.have_warned_trunc_pr = True
 
     def use_edabit(self, change=None):
         """Setting whether to use edaBits for non-linear
