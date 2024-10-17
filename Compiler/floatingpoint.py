@@ -587,7 +587,7 @@ def TruncPrField(a, k, m):
                       k, m, use_dabit=False)
     two_to_m = two_power(m)
     r = two_to_m * r_dprime + r_prime
-    c = (b + r).reveal(False)
+    c = (b + r).reveal(True)
     c_prime = c % two_to_m
     a_prime = c_prime - r_prime
     d = (a - a_prime).field_div(two_to_m)
