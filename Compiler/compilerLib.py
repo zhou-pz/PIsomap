@@ -443,6 +443,8 @@ class Compiler:
                         continue
                     m = re.match(r"(\s*)if(\W.*):", line)
                     if m:
+                        while if_stack and if_stack[-1][0] == m.group(1):
+                            if_stack.pop()
                         if_stack.append((m.group(1), len(output)))
                         output.append("%s@if_(%s)\n" % (m.group(1), m.group(2)))
                         output.append("%sdef _():\n" % (m.group(1)))
