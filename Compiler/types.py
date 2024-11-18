@@ -6492,7 +6492,8 @@ class SubMultiArray(_vectorizable):
             return self.get_vector()
         if isinstance(index, int) and index < 0:
             index += self.sizes[0]
-        key = program.curr_block, str(index)
+        key = program.curr_tape, tuple(
+            (x, x.has_else) for x in program.curr_tape.if_states), str(index)
         if key not in self.sub_cache:
             if util.is_constant(index) and \
                (index >= self.sizes[0] or index < 0):
