@@ -13,8 +13,18 @@ from .program import Program, defaults
 
 
 class Compiler:
+    singleton = None
+
     def __init__(self, custom_args=None, usage=None, execute=False,
                  split_args=False):
+        if Compiler.singleton:
+            raise CompilerError(
+                "Cannot have more than one compiler instance. "
+                "It's not possible to run direct compilation programs with "
+                "compile.py or compile-run.py.")
+        else:
+            Compiler.singleton = self
+
         if usage:
             self.usage = usage
         else:

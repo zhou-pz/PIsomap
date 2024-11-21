@@ -178,6 +178,8 @@ class StraightlineAllocator:
             dup = dup.vectorbase
             self.alloc[dup] = self.alloc[base]
             dup.i = self.alloc[base]
+            if not dup.dup_count:
+                dup.dup_count = len(base.duplicates)
 
     def dealloc_reg(self, reg, inst, free):
         if reg.vector:
@@ -275,8 +277,9 @@ class StraightlineAllocator:
         for reg in self.alloc:
             for x in reg.get_all():
                 if x not in self.dealloc and reg not in self.dealloc \
-                   and len(x.duplicates) == 0:
-                    print('Warning: read before write at register', x)
+                   and len(x.duplicates) == x.dup_count:
+                    print('Warning: read before write at register %s/%x' % 
+                          (x, id(x)))
                     print('\tregister trace: %s' % format_trace(x.caller,
                                                                 '\t\t'))
                     if options.stop:
@@ -750,6 +753,8 @@ class Merger:
                 G.remove_node(i)
                 merge_nodes.discard(i)
                 stats[type(instructions[i]).__name__] += 1
+                for reg in instructions[i].get_def():
+                    self.block.parent.program.base_addresses.pop(reg)
                 instructions[i] = None
             if unused_result:
                 eliminate(i)

@@ -8,11 +8,11 @@ trigger:
 - to-publish
 
 pool:
-  vmImage: 'ubuntu-20.04'
+  vmImage: 'ubuntu-24.04'
 
 steps:
   - script: |
-      bash -c "sudo apt-get update && sudo apt-get install libsodium-dev libntl-dev python3-gmpy2 python3-networkx"
+      bash -c "sudo apt-get update && sudo apt-get install libboost-all-dev libsodium-dev libntl-dev python3-gmpy2 python3-networkx"
   - script: |
       make setup
   - script:
