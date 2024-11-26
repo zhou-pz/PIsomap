@@ -489,7 +489,11 @@ class Merger:
                 if this[-1] < other[0]:
                     del this[:]
             this.append(n)
-            for inst in other:
+            if last_access_this_kind == last_mem_write_of:
+                insts = itertools.chain(other, this)
+            else:
+                insts = other
+            for inst in insts:
                 add_edge(inst, n)
 
         def mem_access(n, instr, last_access_this_kind, last_access_other_kind):
