@@ -15,6 +15,7 @@
 #define SIMDE_X86_AVX2_ENABLE_NATIVE_ALIASES
 #include "simde/simde/x86/avx2.h"
 #include "simde/simde/x86/clmul.h"
+#define SSE2NEON_SUPPRESS_WARNINGS
 #include "sse2neon/sse2neon.h"
 #endif
 #endif
