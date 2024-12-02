@@ -2952,6 +2952,8 @@ class SGD(Optimizer):
                     self.layers[-1].Y[j] = label
         for y in self.momentum_values:
             y.assign_all(0)
+        for y in self.delta_thetas:
+            y.assign_all(0)
         super(SGD, self).reset()
 
     def _update(self, i_epoch, i_batch, batch):
