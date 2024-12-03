@@ -737,6 +737,7 @@ unsigned BaseInstruction::get_max_reg(int reg_type) const
       return res;
   }
   case MULS:
+  case MULRS:
       skip = 4;
       offset = 1;
       size_offset = -1;
