@@ -116,6 +116,8 @@ public:
                         + to_string(get_size()) + ")";
             else
                 return "sint.Array(" + to_string(get_size()) + ")";
+        else if (reg_type == "ci")
+            return "regint(0, size=" + to_string(get_size()) + ")";
         else
             return "sint(0, size=" + to_string(get_size()) + ")";
     }
