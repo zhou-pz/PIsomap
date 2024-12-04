@@ -42,3 +42,8 @@ void FunctionArgument::check_type(const string& type_string)
                 "return type mismatch: " + get_type_string() + "/"
                         + type_string);
 }
+
+bool FunctionArgument::has_reg_type(const char* reg_type)
+{
+    return this->reg_type == string(reg_type);
+}

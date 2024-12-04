@@ -167,6 +167,7 @@ EXPORT_VM = $(patsubst %.cpp, %.o, $(wildcard Machines/export-*.cpp))
 
 export-trunc.x: Machines/export-ring.o
 export-sort.x: Machines/export-ring.o
+export-msort.x: Machines/export-ring.o
 export-a2b.x: GC/AtlasSecret.o Machines/SPDZ.o Machines/SPDZ2^64+64.o $(GC_SEMI) $(TINIER) $(EXPORT_VM) GC/Rep4Secret.o GC/Rep4Prep.o $(FHEOFFLINE)
 export-b2a.x: Machines/export-ring.o
 

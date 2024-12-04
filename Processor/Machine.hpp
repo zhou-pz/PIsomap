@@ -443,7 +443,7 @@ void Machine<sint, sgf2n>::run_function(const string& name,
                   arguments[i].get_value<vector<typename sint::bit_type>>(j).at(
                       k);
           }
-        else
+        else if (arguments[i].has_reg_type("s"))
           {
             auto& value = arguments[i].get_value<sint>(j);
             if (arguments[i].get_memory())
@@ -451,11 +451,17 @@ void Machine<sint, sgf2n>::run_function(const string& name,
             else
               processor.Procp.get_S()[arg_regs.at(i) + j] = value;
           }
+        else
+          {
+            assert(arguments[i].has_reg_type("ci"));
+            processor.write_Ci(arg_regs.at(i) + j, arguments[i].get_value<long>(j));
+          }
       }
 
   run_tape(0, tape_number, 0, N.num_players());
   join_tape(0);
 
+  assert(result.has_reg_type("s"));
   for (size_t j = 0; j < result.get_size(); j++)
     result.get_value<sint>(j) = processor.Procp.get_S()[return_reg + j];
 

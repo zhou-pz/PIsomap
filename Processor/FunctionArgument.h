@@ -73,6 +73,15 @@ public:
         }
     }
 
+    /**
+     * Argument with integer array.
+     */
+    FunctionArgument(vector<long>& values) :
+            data(values.data()), size(values.size()), n_bits(0),
+            reg_type("ci"), memory(false)
+    {
+    }
+
     size_t get_size()
     {
         return size;
@@ -115,6 +124,8 @@ public:
     {
         return memory;
     }
+
+    bool has_reg_type(const char* reg_type);
 
     template<class T>
     T& get_value(size_t index)
