@@ -2981,7 +2981,7 @@ class SGD(Optimizer):
                 new = nabla_vector._new(v)
                 delta_theta.assign_vector(new, base)
                 theta.assign_vector(theta.get_vector(base, size) +
-                                    delta_theta.get_vector(), base)
+                                    delta_theta.get_vector(base, size), base)
             if self.print_update_average:
                 vec = abs(delta_theta.get_vector().reveal())
                 print_ln('update average: %s (%s)',
