@@ -1,0 +1,58 @@
+
+def test_case(permutation_sizes, timer_base: int | None = None):
+    if timer_base is not None:
+        start_timer(timer_base + 0)
+    arrays = []
+    permutations = []
+    for size in permutation_sizes:
+        arrays.append(Array.create_from([sint(i) for i in range(size)]))
+        permutations.append(sint.get_secure_shuffle(size))
+    if timer_base is not None:
+        stop_timer(timer_base + 0)
+        start_timer(timer_base + 1)
+
+    for arr, p in zip(arrays, permutations):
+        arr.secure_permute(p)
+
+    if timer_base is not None:
+        stop_timer(timer_base + 1)
+        start_timer(timer_base + 2)
+
+    for i, arr in enumerate(arrays):
+        print_ln("%s", arr.reveal())
+
+    if timer_base is not None:
+        stop_timer(timer_base + 2)
+        start_timer(timer_base + 3)
+
+    for arr, p in zip(arrays, permutations):
+        arr.secure_permute(p, reverse=True)
+
+    if timer_base is not None:
+        stop_timer(timer_base + 3)
+        start_timer(timer_base + 4)
+
+    for i, arr in enumerate(arrays):
+        print_ln("%s", arr.reveal())
+
+    if timer_base is not None:
+        stop_timer(timer_base + 4)
+
+
+def test_allocator():
+    arr1 = sint.Array(5)
+    arr2 = sint.Array(10)
+    arr3 = sint.Array(20)
+
+    p1 = sint.get_secure_shuffle(5)
+    p2 = sint.get_secure_shuffle(10)
+    p3 = sint.get_secure_shuffle(20)
+
+    # Look at the bytecode, arr1 and arr3 should be shuffled in parallel, arr2 afterward.
+    arr1.secure_permute(p1)
+    arr2[0] = arr1[0]
+    arr2.secure_permute(p2)
+    arr3.secure_permute(p3)
+
+test_allocator()
+# test_case([5, 10, 20], 10)

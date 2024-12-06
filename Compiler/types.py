@@ -3055,7 +3055,7 @@ class sint(_secret, _int):
     @read_mem_value
     def secure_permute(self, shuffle, unit_size=1, reverse=False):
         res = sint(size=self.size)
-        applyshuffle(res, self, unit_size, shuffle, reverse)
+        applyshuffle(self.size, res, self, unit_size, shuffle, reverse)
         return res
 
     def inverse_permutation(self):

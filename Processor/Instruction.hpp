@@ -285,7 +285,8 @@ void BaseInstruction::parse_operands(istream& s, int pos, int file_pos)
       case PRINTFLOATPLAIN:
       case PRINTFLOATPLAINB:
       case APPLYSHUFFLE:
-        get_vector(5, start, s);
+        num_var_args = get_int(s);
+        get_vector(num_var_args, start, s);
         break;
       case INCINT:
         r[0]=get_int(s);
@@ -1136,8 +1137,7 @@ inline void Instruction::execute(Processor<sint, sgf2n>& Proc) const
             Proc.machine.shuffle_store));
         return;
       case APPLYSHUFFLE:
-        Proc.Procp.apply_shuffle(*this, Proc.read_Ci(start.at(3)),
-            Proc.machine.shuffle_store);
+        Proc.Procp.apply_shuffle(*this, Proc.machine.shuffle_store);
         return;
       case DELSHUFFLE:
         Proc.machine.shuffle_store.del(Proc.read_Ci(r[0]));
