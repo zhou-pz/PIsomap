@@ -896,7 +896,7 @@ void SubProcessor<T>::apply_shuffle(const Instruction& instruction,
     const auto& args = instruction.get_start();
 
     const auto n_shuffles = args.size() / 5;
-    vector<int> sizes(n_shuffles, 0);
+    vector<size_t> sizes(n_shuffles, 0);
     vector<int> destinations(n_shuffles, 0);
     vector<int> sources(n_shuffles, 0);
     vector<int> unit_sizes(n_shuffles, 0);
