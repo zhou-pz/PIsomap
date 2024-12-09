@@ -98,6 +98,22 @@ void SecureShuffle<T>::apply(vector<T>& a, size_t n, int unit_size, size_t outpu
 
 
 template<class T>
+void SecureShuffle<T>::applyMultiple(vector<T>& a, vector<int>& sizes, vector<int>& destinations, vector<int>& sources,
+                                    vector<int>& unit_sizes, vector<int>& handles, vector<bool>& reverse, store_type& store) {
+    const auto n_shuffles = sizes.size();
+    assert(sources.size() == n_shuffles);
+    assert(destinations.size() == n_shuffles);
+    assert(unit_sizes.size() == n_shuffles);
+    assert(handles.size() == n_shuffles);
+    assert(reverse.size() == n_shuffles);
+
+    for (size_t i = 0; i < n_shuffles; i++) {
+        this->apply(a, sizes[i], unit_sizes[i], destinations[i], sources[i], store.get(handles[i]), reverse[i]);
+    }
+}
+
+
+template<class T>
 void SecureShuffle<T>::inverse_permutation(vector<T> &stack, size_t n, size_t output_base,
                                            size_t input_base) {
     int alice = 0;

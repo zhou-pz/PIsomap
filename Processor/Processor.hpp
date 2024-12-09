@@ -893,20 +893,38 @@ template<class T>
 void SubProcessor<T>::apply_shuffle(const Instruction& instruction,
                                     ShuffleStore& shuffle_store)
 {
-    auto& start = instruction.get_start();
+    const auto& args = instruction.get_start();
 
-    for (auto shuffleArgs = start.begin(); shuffleArgs < start.end(); shuffleArgs += 6) {
-        // shuffleArgs[0] size
-        // shuffleArgs[1] dest
-        // shuffleArgs[2] source
-        // shuffleArgs[3] unit size
-        // shuffleArgs[4] handle
-        // shuffleArgs[5] reverse
-        shuffler.apply(S, shuffleArgs[0], shuffleArgs[3],
-            shuffleArgs[1], shuffleArgs[2],
-            shuffle_store.get(Proc->read_Ci(shuffleArgs[4])),
-            shuffleArgs[5]);
+    const auto n_shuffles = args.size() / 5;
+    vector<int> sizes(n_shuffles, 0);
+    vector<int> destinations(n_shuffles, 0);
+    vector<int> sources(n_shuffles, 0);
+    vector<int> unit_sizes(n_shuffles, 0);
+    vector<int> shuffles(n_shuffles, 0);
+    vector<bool> reverse(n_shuffles, false);
+    for (size_t i = 0; i < n_shuffles; i++) {
+        sizes[i] = args[6 * i];
+        destinations[i] = args[6 * i + 1];
+        sources[i] = args[6 * i + 2];
+        unit_sizes[i] = args[6 * i + 3];
+        shuffles[i] = Proc->read_Ci(args[6 * i + 4]);
+        reverse[i] = args[6 * i + 5];
     }
+    shuffler.applyMultiple(S, sizes, destinations, sources, unit_sizes, shuffles, reverse, shuffle_store);
+
+    // auto start = instruction.get_start();
+    // for (auto shuffleArgs = start.begin(); shuffleArgs < start.end(); shuffleArgs += 6) {
+    //     // shuffleArgs[0] size
+    //     // shuffleArgs[1] dest
+    //     // shuffleArgs[2] source
+    //     // shuffleArgs[3] unit size
+    //     // shuffleArgs[4] handle
+    //     // shuffleArgs[5] reverse
+    //     shuffler.apply(S, shuffleArgs[0], shuffleArgs[3],
+    //         shuffleArgs[1], shuffleArgs[2],
+    //         shuffle_store.get(Proc->read_Ci(shuffleArgs[4])),
+    //         shuffleArgs[5]);
+    // }
 }
 
 template<class T>
