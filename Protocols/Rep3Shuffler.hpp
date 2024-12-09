@@ -49,84 +49,36 @@ void Rep3Shuffler<T>::apply(vector<T>& a, size_t n, int unit_size,
         size_t output_base, size_t input_base, shuffle_type& shuffle,
         bool reverse)
 {
-    assert(proc.P.num_players() == 3);
-    assert(not T::malicious);
-    assert(not T::dishonest_majority);
-    assert(n % unit_size == 0);
-
-    if (shuffle.empty())
-        throw runtime_error("shuffle has been deleted");
-
-    vector<T> to_shuffle;
-    for (size_t i = 0; i < n; i++)
-        to_shuffle.push_back(a[input_base + i]);
-
-    typename T::Input input(proc);
-
-    vector<typename T::clear> to_share(n);
-
-    for (int ii = 0; ii < 3; ii++)
-    {
-        int i;
-        if (reverse)
-            i = 2 - ii;
-        else
-            i = ii;
-
-        if (proc.P.get_player(i) == 0)
-        {
-            for (size_t j = 0; j < n / unit_size; j++)
-                for (int k = 0; k < unit_size; k++)
-                    if (reverse)
-                        to_share.at(j * unit_size + k) = to_shuffle.at(
-                                shuffle[0].at(j) * unit_size + k).sum();
-                    else
-                        to_share.at(shuffle[0].at(j) * unit_size + k) =
-                                to_shuffle.at(j * unit_size + k).sum();
-        }
-        else if (proc.P.get_player(i) == 1)
-        {
-            for (size_t j = 0; j < n / unit_size; j++)
-                for (int k = 0; k < unit_size; k++)
-                    if (reverse)
-                        to_share[j * unit_size + k] = to_shuffle[shuffle[1][j]
-                                * unit_size + k][0];
-                    else
-                        to_share[shuffle[1][j] * unit_size + k] = to_shuffle[j
-                                * unit_size + k][0];
-        }
-
-        input.reset_all(proc.P);
-
-        if (proc.P.get_player(i) < 2)
-            for (auto& x : to_share)
-                input.add_mine(x);
-
-        for (int k = 0; k < 2; k++)
-            input.add_other((-i + 3 + k) % 3);
-
-        input.exchange();
-        to_shuffle.clear();
-
-        for (size_t j = 0; j < n; j++)
-        {
-            T x = input.finalize((-i + 3) % 3) + input.finalize((-i + 4) % 3);
-            to_shuffle.push_back(x);
-        }
-    }
-
-    for (size_t i = 0; i < n; i++)
-        a[output_base + i] = to_shuffle[i];
+    vector<size_t> sizes { n };
+    vector<size_t> unit_sizes { static_cast<size_t>(unit_size) };
+    vector<size_t> destinations { output_base };
+    vector<size_t> sources { input_base };
+    vector<shuffle_type> shuffles { shuffle };
+    vector<bool> reverses { reverse };
+    this->applyMultiple(a, sizes, unit_sizes, destinations, sources, shuffles, reverses);
 }
 
 template<class T>
-void Rep3Shuffler<T>::applyMultiple(vector<T>& a, vector<size_t>& sizes, vector<int>& destinations, vector<int>& sources,
-                                    vector<int>& unit_sizes, vector<int>& handles, vector<bool>& reverses, store_type& store) {
+void Rep3Shuffler<T>::applyMultiple(vector<T>& a, vector<size_t>& sizes, vector<size_t>& destinations, vector<size_t>& sources,
+                                    vector<size_t>& unit_sizes, vector<size_t>& handles, vector<bool>& reverses, store_type& store) {
+    vector<shuffle_type> shuffles;
+    for (size_t &handle : handles) {
+        shuffle_type& shuffle = store.get(handle);
+        shuffles.push_back(shuffle);
+    }
+
+    applyMultiple(a, sizes, destinations, sources, unit_sizes, shuffles, reverses);
+}
+
+template<class T>
+void Rep3Shuffler<T>::applyMultiple(vector<T> &a, vector<size_t> &sizes, vector<size_t> &destinations,
+    vector<size_t> &sources, vector<size_t> &unit_sizes, vector<shuffle_type> &shuffles, vector<bool> &reverses)
+{
     const auto n_shuffles = sizes.size();
     assert(sources.size() == n_shuffles);
     assert(destinations.size() == n_shuffles);
     assert(unit_sizes.size() == n_shuffles);
-    assert(handles.size() == n_shuffles);
+    assert(shuffles.size() == n_shuffles);
     assert(reverses.size() == n_shuffles);
 
     assert(proc.P.num_players() == 3);
@@ -145,7 +97,7 @@ void Rep3Shuffler<T>::applyMultiple(vector<T>& a, vector<size_t>& sizes, vector<
             x.push_back(a[sources[current_shuffle] + j]);
         to_shuffle.push_back(x);
 
-        const auto shuffle = store.get(handles[current_shuffle]);
+        const auto& shuffle = shuffles[current_shuffle];
         if (shuffle.empty())
             throw runtime_error("shuffle has been deleted");
     }
@@ -160,7 +112,7 @@ void Rep3Shuffler<T>::applyMultiple(vector<T>& a, vector<size_t>& sizes, vector<
     for (size_t current_shuffle = 0; current_shuffle < n_shuffles; current_shuffle++) {
         const auto n = sizes[current_shuffle];
         const auto unit_size = unit_sizes[current_shuffle];
-        const auto shuffle = store.get(handles[current_shuffle]);
+        const auto& shuffle = shuffles[current_shuffle];
         const auto reverse = reverses[current_shuffle];
         const auto current_to_shuffle = to_shuffle[current_shuffle];
 
@@ -173,7 +125,7 @@ void Rep3Shuffler<T>::applyMultiple(vector<T>& a, vector<size_t>& sizes, vector<
 
         if (proc.P.get_player(i) == 0) {
             for (size_t j = 0; j < n / unit_size; j++)
-                for (int k = 0; k < unit_size; k++)
+                for (size_t k = 0; k < unit_size; k++)
                     if (reverse)
                         to_share.at(j * unit_size + k) = current_to_shuffle.at(
                             shuffle[0].at(j) * unit_size + k).sum();
@@ -184,7 +136,7 @@ void Rep3Shuffler<T>::applyMultiple(vector<T>& a, vector<size_t>& sizes, vector<
         else if (proc.P.get_player(i) == 1)
         {
             for (size_t j = 0; j < n / unit_size; j++)
-                for (int k = 0; k < unit_size; k++)
+                for (size_t k = 0; k < unit_size; k++)
                     if (reverse)
                         to_share[j * unit_size + k] = current_to_shuffle[shuffle[1][j] * unit_size + k][0];
                     else

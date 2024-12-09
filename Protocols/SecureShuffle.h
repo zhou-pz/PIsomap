@@ -104,8 +104,8 @@ public:
     void apply(vector<T>& a, size_t n, int unit_size, size_t output_base,
             size_t input_base, shuffle_type& shuffle, bool reverse);
 
-    void applyMultiple(vector<T>& a, vector<size_t>& sizes, vector<int>& destinations, vector<int>& sources,
-                       vector<int>& unit_sizes, vector<int>& handles, vector<bool>& reverse, store_type& store);
+    void applyMultiple(vector<T>& a, vector<size_t>& sizes, vector<size_t>& destinations, vector<size_t>& sources,
+                       vector<size_t>& unit_sizes, vector<size_t>& handles, vector<bool>& reverse, store_type& store);
 
     /**
      * Calculate the secret inverse permutation of stack given secret permutation.

@@ -897,10 +897,10 @@ void SubProcessor<T>::apply_shuffle(const Instruction& instruction,
 
     const auto n_shuffles = args.size() / 5;
     vector<size_t> sizes(n_shuffles, 0);
-    vector<int> destinations(n_shuffles, 0);
-    vector<int> sources(n_shuffles, 0);
-    vector<int> unit_sizes(n_shuffles, 0);
-    vector<int> shuffles(n_shuffles, 0);
+    vector<size_t> destinations(n_shuffles, 0);
+    vector<size_t> sources(n_shuffles, 0);
+    vector<size_t> unit_sizes(n_shuffles, 0);
+    vector<size_t> shuffles(n_shuffles, 0);
     vector<bool> reverse(n_shuffles, false);
     for (size_t i = 0; i < n_shuffles; i++) {
         sizes[i] = args[6 * i];

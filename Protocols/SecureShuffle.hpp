@@ -98,8 +98,8 @@ void SecureShuffle<T>::apply(vector<T>& a, size_t n, int unit_size, size_t outpu
 
 
 template<class T>
-void SecureShuffle<T>::applyMultiple(vector<T>& a, vector<size_t>& sizes, vector<int>& destinations, vector<int>& sources,
-                                    vector<int>& unit_sizes, vector<int>& handles, vector<bool>& reverse, store_type& store) {
+void SecureShuffle<T>::applyMultiple(vector<T>& a, vector<size_t>& sizes, vector<size_t>& destinations, vector<size_t>& sources,
+                                    vector<size_t>& unit_sizes, vector<size_t>& handles, vector<bool>& reverse, store_type& store) {
     const auto n_shuffles = sizes.size();
     assert(sources.size() == n_shuffles);
     assert(destinations.size() == n_shuffles);
