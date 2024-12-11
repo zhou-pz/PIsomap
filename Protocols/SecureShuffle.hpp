@@ -125,7 +125,7 @@ void SecureShuffle<T>::applyMultiple(vector<T> &a, vector<size_t> &sizes, vector
     // Initialize the shuffles.
     vector<bool> isExact(n_shuffles, false);
     vector<vector<T>> toShuffle;
-    size_t max_depth = 0;
+    int max_depth = 0;
 
     for (size_t currentShuffle = 0; currentShuffle < n_shuffles; currentShuffle++) {
         const size_t input_base = sources[currentShuffle];
@@ -179,19 +179,26 @@ void SecureShuffle<T>::applyMultiple(vector<T> &a, vector<size_t> &sizes, vector
     }
 
     // Apply the shuffles.
-    for (size_t current_shuffle = 0; current_shuffle < n_shuffles; current_shuffle++) {
-        for (size_t pass = 0; pass < n_passes; pass++)
-        {
-            const auto isReverse = reverse[current_shuffle];
-            size_t configIdx = pass;
-            if (isReverse)
-                configIdx = n_passes - pass - 1;
+    for (size_t pass = 0; pass < n_passes; pass++)
+    {
+        for (int depth = 0; depth < max_depth; depth++) {
+            vector<vector<array<int, 5>>> allIndices;
+            proc.protocol.init_mul();
 
-            auto& config = shuffles[current_shuffle][configIdx];
+            for (size_t current_shuffle = 0; current_shuffle < n_shuffles; current_shuffle++) {
+                int n = toShuffle[current_shuffle].size() / unit_sizes[current_shuffle];
+                if (depth >= log2(n)) {
+                    allIndices.push_back({});
+                    continue;
+                }
 
-            int n = toShuffle[current_shuffle].size() / unit_sizes[current_shuffle];
-            for (int depth = 0; depth < log2(n); depth++) {
-                proc.protocol.init_mul();
+                const auto isReverse = reverse[current_shuffle];
+                size_t configIdx = pass;
+                if (isReverse)
+                    configIdx = n_passes - pass - 1;
+
+                auto& config = shuffles[current_shuffle][configIdx];
+
                 vector<array<int, 5>> indices = waksman_round_init(
                     toShuffle[current_shuffle],
                     unit_sizes[current_shuffle],
@@ -200,13 +207,36 @@ void SecureShuffle<T>::applyMultiple(vector<T> &a, vector<size_t> &sizes, vector
                     true,
                     isReverse
                 );
-                proc.protocol.exchange();
-
-                waksman_round_finish(toShuffle[current_shuffle], unit_sizes[current_shuffle], indices);
+                allIndices.push_back(indices);
             }
+            proc.protocol.exchange();
+            for (size_t current_shuffle = 0; current_shuffle < n_shuffles; current_shuffle++) {
+                int n = toShuffle[current_shuffle].size() / unit_sizes[current_shuffle];
+                if (depth >= log2(n)) {
+                    continue;
+                }
+                waksman_round_finish(toShuffle[current_shuffle], unit_sizes[current_shuffle], allIndices[current_shuffle]);
+            }
+        }
 
-            for (int depth = log2(n) - 2; depth >= 0; depth--) {
-                proc.protocol.init_mul();
+        for (int depth = max_depth - 1; depth >= 0; depth--) {
+            vector<vector<array<int, 5>>> allIndices;
+            proc.protocol.init_mul();
+
+            for (size_t current_shuffle = 0; current_shuffle < n_shuffles; current_shuffle++) {
+                int n = toShuffle[current_shuffle].size() / unit_sizes[current_shuffle];
+                if (depth > log2(n) - 2) {
+                    allIndices.push_back({});
+                    continue;
+                }
+
+                const auto isReverse = reverse[current_shuffle];
+                size_t configIdx = pass;
+                if (isReverse)
+                    configIdx = n_passes - pass - 1;
+
+                auto& config = shuffles[current_shuffle][configIdx];
+
                 vector<array<int, 5>> indices = waksman_round_init(
                     toShuffle[current_shuffle],
                     unit_sizes[current_shuffle],
@@ -215,9 +245,15 @@ void SecureShuffle<T>::applyMultiple(vector<T> &a, vector<size_t> &sizes, vector
                     false,
                     isReverse
                 );
-                proc.protocol.exchange();
-
-                waksman_round_finish(toShuffle[current_shuffle], unit_sizes[current_shuffle], indices);
+                allIndices.push_back(indices);
+            }
+            proc.protocol.exchange();
+            for (size_t current_shuffle = 0; current_shuffle < n_shuffles; current_shuffle++) {
+                int n = toShuffle[current_shuffle].size() / unit_sizes[current_shuffle];
+                if (depth > log2(n) - 2) {
+                    continue;
+                }
+                waksman_round_finish(toShuffle[current_shuffle], unit_sizes[current_shuffle], allIndices[current_shuffle]);
             }
         }
     }

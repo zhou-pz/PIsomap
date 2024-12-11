@@ -50,11 +50,54 @@ def test_case(permutation_sizes, timer_base: int | None = None):
         def test_is_original(i: cint) -> None:
             @if_(revealed[i] != i)
             def fail():
-                print_ln("FAILED!")
+                print_ln("Failed to invert permutation!")
                 crash()
 
     if timer_base is not None:
         stop_timer(timer_base + 4)
+
+
+def test_parallel_permutation_equals_sequential_permutation(sizes: list[int], timer_base: int) -> None:
+    start_timer(timer_base)
+    permutations = []
+    for permutation_size in sizes:
+        permutations.append(sint.get_secure_shuffle(permutation_size))
+    stop_timer(timer_base)
+
+    start_timer(timer_base + 1)
+    arrs_to_permute_sequentially = []
+    arrs_to_permute_parallely = []
+    for permutation_size in sizes:
+        arrs_to_permute_sequentially.append(Array.create_from([sint(i) for i in range(permutation_size)]))
+        arrs_to_permute_parallely.append(Array.create_from([sint(i) for i in range(permutation_size)]))
+    stop_timer(timer_base + 1)
+
+    start_timer(timer_base + 2)
+    for arr, perm in zip(arrs_to_permute_sequentially, permutations):
+        arr.secure_permute(perm)
+        break_point()
+    stop_timer(timer_base + 2)
+
+    start_timer(timer_base + 3)
+    for arr, perm in zip(arrs_to_permute_parallely, permutations):
+        arr.secure_permute(perm)
+    stop_timer(timer_base + 3)
+
+    start_timer(timer_base + 4)
+    arrs_to_permute_sequentially = [arr.reveal() for arr in arrs_to_permute_sequentially]
+    arrs_to_permute_parallely = [arr.reveal() for arr in arrs_to_permute_parallely]
+    stop_timer(timer_base + 4)
+
+    for (arr_seq, arr_par) in zip(arrs_to_permute_sequentially, arrs_to_permute_parallely):
+        print_ln("Sequential: %s", arr_seq)
+        print_ln("Parallel: %s", arr_par)
+
+        @for_range(len(arr_seq))
+        def test_equals(i: cint) -> None:
+            @if_(arr_seq[i] != arr_par[i])
+            def fail():
+                print_ln("Sequentially permuted arrays to not match the parallely permuted arrays.")
+                crash()
 
 
 def test_allocator():
@@ -77,3 +120,5 @@ test_case([5,10], 10)
 test_case([5, 10, 15, 20], 20)
 test_case([4,8,16], 30)
 test_case([5], 40)
+
+test_parallel_permutation_equals_sequential_permutation([5,10],50)
