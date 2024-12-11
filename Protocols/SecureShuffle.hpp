@@ -139,9 +139,6 @@ void SecureShuffle<T>::applyMultiple(vector<T> &a, vector<size_t> &sizes, vector
         const size_t n_shuffle_pow2 = (1u << int(ceil(log2(n_shuffle))));
         const bool exact = (n_shuffle_pow2 == n_shuffle) or not T::malicious;
 
-        if (log2(n_shuffle) > max_depth)
-            max_depth = log2(n_shuffle);
-
         vector<T> tmp;
         if (exact)
         {
@@ -176,6 +173,10 @@ void SecureShuffle<T>::applyMultiple(vector<T> &a, vector<size_t> &sizes, vector
 
         toShuffle.push_back(tmp);
         isExact[currentShuffle] = exact;
+
+        const int shuffle_depth = tmp.size() / unit_size;
+        if (shuffle_depth > max_depth)
+            max_depth = shuffle_depth;
     }
 
     // Apply the shuffles.
@@ -229,6 +230,7 @@ void SecureShuffle<T>::applyMultiple(vector<T> &a, vector<size_t> &sizes, vector
                     allIndices.push_back({});
                     continue;
                 }
+                cout << "Shuffle " << current_shuffle << " Pass " << pass << " Outwards depth " << depth << endl;
 
                 const auto isReverse = reverse[current_shuffle];
                 size_t configIdx = pass;

@@ -28,7 +28,7 @@ def test_case(permutation_sizes, timer_base: int | None = None):
             n_matched.update(n_matched + (revealed[i] == i))
         @if_(n_matched == len(arr))
         def didnt_permute():
-            print_ln("Permutation likely didn't work.")
+            print_ln("Permutation potentially didn't work (permutation might have been identity by chance).")
             crash()
 
     if timer_base is not None:
