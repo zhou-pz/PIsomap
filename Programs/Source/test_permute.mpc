@@ -19,7 +19,17 @@ def test_case(permutation_sizes, timer_base: int | None = None):
         start_timer(timer_base + 2)
 
     for i, arr in enumerate(arrays):
-        print_ln("%s", arr.reveal())
+        revealed = arr.reveal()
+        print_ln("%s", revealed)
+
+        n_matched = cint(0)
+        @for_range(len(arr))
+        def count_matches(i: cint) -> None:
+            n_matched.update(n_matched + (revealed[i] == i))
+        @if_(n_matched == len(arr))
+        def didnt_permute():
+            print_ln("Permutation likely didn't work.")
+            crash()
 
     if timer_base is not None:
         stop_timer(timer_base + 2)
@@ -33,7 +43,15 @@ def test_case(permutation_sizes, timer_base: int | None = None):
         start_timer(timer_base + 4)
 
     for i, arr in enumerate(arrays):
-        print_ln("%s", arr.reveal())
+        revealed = arr.reveal()
+        print_ln("%s", revealed)
+
+        @for_range(len(arr))
+        def test_is_original(i: cint) -> None:
+            @if_(revealed[i] != i)
+            def fail():
+                print_ln("FAILED!")
+                crash()
 
     if timer_base is not None:
         stop_timer(timer_base + 4)
@@ -55,5 +73,7 @@ def test_allocator():
     arr3.secure_permute(p3)
 
 # test_allocator()
-test_case([5, 10, 20], 10)
+test_case([5,10], 10)
 test_case([5, 10, 15, 20], 20)
+test_case([4,8,16], 30)
+test_case([5], 40)

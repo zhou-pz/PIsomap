@@ -77,6 +77,9 @@ private:
     void iter_waksman(bool reverse = false);
     void waksman_round(int size, bool inwards, bool reverse);
 
+    vector<array<int, 5>> waksman_round_init(vector<T>& toShuffle, size_t shuffle_unit_size, int depth, vector<vector<T>>& iter_waksman_config, bool inwards, bool reverse);
+    void waksman_round_finish(vector<T>& toShuffle, size_t unit_size, vector<array<int, 5>> indices);
+
     void pre(vector<T>& a, size_t n, size_t input_base);
     void post(vector<T>& a, size_t n, size_t input_base);
 
@@ -106,6 +109,8 @@ public:
 
     void applyMultiple(vector<T>& a, vector<size_t>& sizes, vector<size_t>& destinations, vector<size_t>& sources,
                        vector<size_t>& unit_sizes, vector<size_t>& handles, vector<bool>& reverse, store_type& store);
+    void applyMultiple(vector<T>& a, vector<size_t>& sizes, vector<size_t>& destinations, vector<size_t>& sources,
+                       vector<size_t>& unit_sizes, vector<shuffle_type>& shuffles, vector<bool>& reverse);
 
     /**
      * Calculate the secret inverse permutation of stack given secret permutation.
