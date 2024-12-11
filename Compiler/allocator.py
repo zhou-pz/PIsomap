@@ -526,7 +526,11 @@ class Merger:
                last_other_kind[-1] > last_this_kind[-1]:
                 last_this_kind[:] = []
             last_this_kind.append(n)
-            for i in last_other_kind:
+            if last_this_kind == last_mem_write:
+                insts = itertools.chain(last_other_kind, last_this_kind)
+            else:
+                insts = last_other_kind
+            for i in insts:
                 add_edge(i, n)
 
         def keep_order(instr, n, t, arg_index=None):
