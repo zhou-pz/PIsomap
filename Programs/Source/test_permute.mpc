@@ -152,15 +152,13 @@ def test_permute_matrix(timer_base: int, value_type=sint) -> None:
     m2 = m2.reveal()
 
     print_ln("Permuted m1:")
-    if value_type == sint:
-        for row in m1:
-            print_ln("%s", row)
+    for row in m1:
+        print_ln("%s", row)
     test_permuted_matrix(m1, p1)
 
     print_ln("Permuted m2:")
-    if value_type == sint:
-        for row in m2:
-            print_ln("%s", row)
+    for row in m2:
+        print_ln("%s", row)
     test_permuted_matrix(m2, p2)
 
 test_allocator()

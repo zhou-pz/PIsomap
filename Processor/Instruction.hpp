@@ -286,9 +286,7 @@ void BaseInstruction::parse_operands(istream& s, int pos, int file_pos)
       // instructions with 5 register operands
       case PRINTFLOATPLAIN:
       case PRINTFLOATPLAINB:
-      case APPLYSHUFFLE:
-        num_var_args = get_int(s);
-        get_vector(num_var_args, start, s);
+        get_vector(5, start, s);
         break;
       case INCINT:
         r[0]=get_int(s);
@@ -322,14 +320,11 @@ void BaseInstruction::parse_operands(istream& s, int pos, int file_pos)
       case RUN_TAPE:
       case CONV2DS:
       case MATMULS:
-        num_var_args = get_int(s);
-        get_vector(num_var_args, start, s);
-        break;
+      case APPLYSHUFFLE:
       case MATMULSM:
         num_var_args = get_int(s);
         get_vector(num_var_args, start, s);
         break;
-
       // read from file, input is opcode num_args, 
       //   start_file_posn (read), end_file_posn(write) var1, var2, ...
       case READFILESHARE:
