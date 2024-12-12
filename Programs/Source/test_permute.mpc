@@ -140,7 +140,6 @@ def test_permute_matrix(timer_base: int, value_type=sint) -> None:
     p1 = sint.get_secure_shuffle(5)
     p2 = sint.get_secure_shuffle(5)
 
-
     start_timer(timer_base + 1)
     m1.secure_permute(p1, n_parallel=1)
     stop_timer(timer_base + 1)
@@ -164,13 +163,13 @@ def test_permute_matrix(timer_base: int, value_type=sint) -> None:
             print_ln("%s", row)
     test_permuted_matrix(m2, p2)
 
-# test_allocator()
-# test_case([5,10], 10)
-# test_case([5, 10, 15, 20], 20)
-# test_case([4,8,16], 30)
-# test_case([5], 40)
-#
-# test_parallel_permutation_equals_sequential_permutation([5,10],50)
-#
-# test_permute_matrix(60)
-# test_permute_matrix(70, value_type=sfix)
+test_allocator()
+test_case([5,10], 10)
+test_case([5, 10, 15, 20], 20)
+test_case([4,8,16], 30)
+test_case([5], 40)
+
+test_parallel_permutation_equals_sequential_permutation([5,10],50)
+
+test_permute_matrix(60)
+test_permute_matrix(70, value_type=sfix)

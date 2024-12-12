@@ -59,7 +59,7 @@ void Rep3Shuffler<T>::apply(StackedVector<T>& a, size_t n, int unit_size,
 }
 
 template<class T>
-void Rep3Shuffler<T>::applyMultiple(vector<T>& a, vector<size_t>& sizes, vector<size_t>& destinations, vector<size_t>& sources,
+void Rep3Shuffler<T>::applyMultiple(StackedVector<T>& a, vector<size_t>& sizes, vector<size_t>& destinations, vector<size_t>& sources,
                                     vector<size_t>& unit_sizes, vector<size_t>& handles, vector<bool>& reverses, store_type& store) {
     vector<shuffle_type> shuffles;
     for (size_t &handle : handles) {
@@ -71,7 +71,7 @@ void Rep3Shuffler<T>::applyMultiple(vector<T>& a, vector<size_t>& sizes, vector<
 }
 
 template<class T>
-void Rep3Shuffler<T>::applyMultiple(vector<T> &a, vector<size_t> &sizes, vector<size_t> &destinations,
+void Rep3Shuffler<T>::applyMultiple(StackedVector<T> &a, vector<size_t> &sizes, vector<size_t> &destinations,
     vector<size_t> &sources, vector<size_t> &unit_sizes, vector<shuffle_type> &shuffles, vector<bool> &reverses)
 {
     const auto n_shuffles = sizes.size();

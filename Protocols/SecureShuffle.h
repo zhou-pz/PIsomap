@@ -79,8 +79,8 @@ private:
 
     void pre(StackedVector<T>& a, size_t n, size_t input_base);
     void post(StackedVector<T>& a, size_t n, size_t input_base);
-    vector<array<int, 5>> waksman_round_init(StackedVector<T>& toShuffle, size_t shuffle_unit_size, int depth, vector<vector<T>>& iter_waksman_config, bool inwards, bool reverse);
-    void waksman_round_finish(StackedVector<T>& toShuffle, size_t unit_size, vector<array<int, 5>> indices);
+    vector<array<int, 5>> waksman_round_init(vector<T>& toShuffle, size_t shuffle_unit_size, int depth, vector<vector<T>>& iter_waksman_config, bool inwards, bool reverse);
+    void waksman_round_finish(vector<T>& toShuffle, size_t unit_size, vector<array<int, 5>> indices);
 
 public:
     map<long, long> stats;
