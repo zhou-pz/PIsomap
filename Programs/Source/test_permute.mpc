@@ -161,13 +161,13 @@ def test_permute_matrix(timer_base: int, value_type=sint) -> None:
         print_ln("%s", row)
     test_permuted_matrix(m2, p2)
 
-# test_allocator()
-# test_case([5,10], 10)
-# test_case([5, 10, 15, 20], 20)
-# test_case([4,8,16], 30)
-# test_case([5], 40)
-#
-# test_parallel_permutation_equals_sequential_permutation([5,10],50)
-#
-# test_permute_matrix(60)
+test_allocator()
+test_case([10, 15], 10)
+test_case([10, 15, 20], 20)
+test_case([8,16], 30)
+test_case([256], 40)
+
+test_parallel_permutation_equals_sequential_permutation([5,10],50)
+
+test_permute_matrix(60)
 test_permute_matrix(70, value_type=sfix)
