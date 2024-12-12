@@ -7106,7 +7106,7 @@ class SubMultiArray(_vectorizable):
         """
         self.assign_vector(self.get_vector().secure_shuffle(self.part_size()))
 
-    def secure_permute(self, permutation, reverse=False, n_threads=None):
+    def secure_permute(self, permutation, reverse=False, n_parallel=None):
         """ Securely permute rows (first index). See
         :py:func:`secure_shuffle` for references.
 
@@ -7114,12 +7114,20 @@ class SubMultiArray(_vectorizable):
         :param reverse: whether to apply inverse (default: False)
 
         """
-        if n_threads is not None:
-            permutation = MemValue(permutation)
-        @library.for_range_multithread(n_threads, 1, self.get_part_size())
-        def _(i):
-            self.set_column(i, self.get_column(i).secure_permute(
-                permutation, reverse=reverse))
+        if self.value_type == sint and False:
+            unit_size = self.get_part_size()
+            n = self.sizes[0] * unit_size
+            res = sint(size=n)
+            applyshuffle(n, res, self[:], unit_size, permutation, reverse)
+            self.assign_vector(res)
+        else:
+            if n_parallel is None:
+                n_parallel = self.get_part_size()
+            @library.for_range_parallel(n_parallel, self.get_part_size())
+            def iter(i):
+                column = self.get_column(i)
+                column = column.secure_permute(permutation, reverse=reverse)
+                self.set_column(i, column)
 
     def sort(self, key_indices=None, n_bits=None):
         """ Sort sub-arrays (different first index) in place.
