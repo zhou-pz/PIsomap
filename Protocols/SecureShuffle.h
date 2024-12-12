@@ -71,20 +71,21 @@ private:
     void configure(int config_player, vector<int>* perm, int n);
     void player_round(int config_player);
 
-    void waksman(vector<T>& a, int depth, int start);
+    void waksman(StackedVector<T>& a, int depth, int start);
     void cond_swap(T& x, T& y, const T& b);
 
     void iter_waksman(bool reverse = false);
     void waksman_round(int size, bool inwards, bool reverse);
 
-    vector<array<int, 5>> waksman_round_init(vector<T>& toShuffle, size_t shuffle_unit_size, int depth, vector<vector<T>>& iter_waksman_config, bool inwards, bool reverse);
-    void waksman_round_finish(vector<T>& toShuffle, size_t unit_size, vector<array<int, 5>> indices);
-
-    void pre(vector<T>& a, size_t n, size_t input_base);
-    void post(vector<T>& a, size_t n, size_t input_base);
+    void pre(StackedVector<T>& a, size_t n, size_t input_base);
+    void post(StackedVector<T>& a, size_t n, size_t input_base);
+    vector<array<int, 5>> waksman_round_init(StackedVector<T>& toShuffle, size_t shuffle_unit_size, int depth, vector<vector<T>>& iter_waksman_config, bool inwards, bool reverse);
+    void waksman_round_finish(StackedVector<T>& toShuffle, size_t unit_size, vector<array<int, 5>> indices);
 
 public:
-    SecureShuffle(vector<T>& a, size_t n, int unit_size,
+    map<long, long> stats;
+
+    SecureShuffle(StackedVector<T>& a, size_t n, int unit_size,
             size_t output_base, size_t input_base, SubProcessor<T>& proc);
 
     SecureShuffle(SubProcessor<T>& proc);
@@ -104,12 +105,12 @@ public:
      * @param reverse Boolean indicating whether to apply the inverse of the permutation
      * @see SecureShuffle::generate for obtaining a shuffle handle
      */
-    void apply(vector<T>& a, size_t n, int unit_size, size_t output_base,
+    void apply(StackedVector<T>& a, size_t n, int unit_size, size_t output_base,
             size_t input_base, shuffle_type& shuffle, bool reverse);
 
-    void applyMultiple(vector<T>& a, vector<size_t>& sizes, vector<size_t>& destinations, vector<size_t>& sources,
+    void applyMultiple(StackedVector<T>& a, vector<size_t>& sizes, vector<size_t>& destinations, vector<size_t>& sources,
                        vector<size_t>& unit_sizes, vector<size_t>& handles, vector<bool>& reverse, store_type& store);
-    void applyMultiple(vector<T>& a, vector<size_t>& sizes, vector<size_t>& destinations, vector<size_t>& sources,
+    void applyMultiple(StackedVector<T>& a, vector<size_t>& sizes, vector<size_t>& destinations, vector<size_t>& sources,
                        vector<size_t>& unit_sizes, vector<shuffle_type>& shuffles, vector<bool>& reverse);
 
     /**
@@ -125,7 +126,7 @@ public:
      * @param output_base The starting address of the output vector (i.e. the location to write the inverted permutation to)
      * @param input_base The starting address of the input vector (i.e. the location from which to read the permutation)
      */
-    void inverse_permutation(vector<T>& stack, size_t n, size_t output_base, size_t input_base);
+    void inverse_permutation(StackedVector<T>& stack, size_t n, size_t output_base, size_t input_base);
 };
 
 #endif /* PROTOCOLS_SECURESHUFFLE_H_ */

@@ -399,7 +399,7 @@ class stop(base.Instruction):
     arg_format = ['i']
 
 class use(base.Instruction):
-    """ Offline data usage. Necessary to avoid reusage while using
+    r""" Offline data usage. Necessary to avoid reusage while using
     preprocessing from files. Also used to multithreading for expensive
     preprocessing.
 
@@ -419,7 +419,7 @@ class use(base.Instruction):
                  args[2].i}
 
 class use_inp(base.Instruction):
-    """ Input usage.  Necessary to avoid reusage while using
+    r""" Input usage.  Necessary to avoid reusage while using
     preprocessing from files.
 
     :param: domain (0: integer, 1: :math:`\mathrm{GF}(2^n)`, 2: bit)
@@ -487,6 +487,70 @@ class join_tape(base.Instruction):
     """
     code = base.opcodes['JOIN_TAPE']
     arg_format = ['int']
+
+class call_tape(base.DoNotEliminateInstruction):
+    """ Start tape/bytecode file in same thread. Arguments/return values
+    starting from :py:obj:`direction` are optional.
+
+    :param: tape number (int)
+    :param: arg (regint)
+    :param: direction (0 for argument, 1 for return value)
+    :param: register type (see :py:obj:`vm_types`)
+    :param: register size (int)
+    :param: destination register
+    :param: source register
+    :param: (repeat from direction)
+
+    """
+    code = base.opcodes['CALL_TAPE']
+    arg_format = tools.chain(['int', 'ci'],
+                             tools.cycle(['int','int','int','*w','*']))
+
+    @staticmethod
+    def type_check(reg, type_id):
+        assert base.vm_types[reg.reg_type] == type_id
+
+    def __init__(self, *args, **kwargs):
+        super(call_tape, self).__init__(*args, **kwargs)
+        for i in range(2, len(args), 5):
+            for reg in args[i + 3:i + 5]:
+                self.type_check(reg, args[i + 1])
+                assert reg.size == args[i + 2]
+            assert args[i] in (0, 1)
+            assert args[i + 4 - args[i]].program == program.curr_tape
+            assert args[i + 3 + args[i]].program == program.tapes[args[0]]
+
+    def get_def(self):
+        # hide registers from called tape
+        for i in range(2, len(self.args), 5):
+            if self.args[i]:
+                yield self.args[i + 3]
+
+    def get_used(self):
+        # hide registers from called tape
+        yield self.args[1]
+        for i in range(2, len(self.args), 5):
+            if not self.args[i]:
+                yield self.args[i + 4]
+
+    def add_usage(self, req_node):
+        req_node.num += program.tapes[self.args[0]].req_tree.aggregate()
+
+class call_arg(base.DoNotEliminateInstruction, base.VectorInstruction):
+    """ Pseudo instruction for arguments in connection with
+    :py:class:`call_tape`.
+
+    :param: destination (register)
+    :param: register type (see :py:obj:`vm_types`)
+
+    """
+    code = base.opcodes['CALL_ARG']
+    arg_format = ['*w','int']
+
+    def __init__(self, *args, **kwargs):
+        super(call_arg, self).__init__(*args, **kwargs)
+        for i in range(0, len(args), 2):
+            call_tape.type_check(args[i], args[i + 1])
 
 class crash(base.IOInstruction):
     """ Crash runtime if the value in the register is not zero.
@@ -686,6 +750,27 @@ class concats(base.VectorInstruction):
         assert len(args[0]) == sum(args[1::2])
         for i in range(1, len(args), 2):
             assert args[i] == len(args[i + 1])
+
+class zips(base.Instruction):
+    """ Zip vectors.
+
+    :param: result (sint)
+    :param: operand (sint)
+    :param: operand (sint)
+
+    """
+    __slots__ = []
+    code = base.opcodes['ZIPS']
+    arg_format = ['sw','s','s']
+    is_vec = lambda self: True
+
+    def __init__(self, *args):
+        super(zips, self).__init__(*args)
+        assert len(args[0]) == len(args[1]) + len(args[2])
+        assert len(args[1]) == len(args[2])
+
+    def get_code(self):
+        return super(zips, self).get_code(len(self.args[1]))
 
 @base.gf2n
 @base.vectorize
@@ -1653,7 +1738,7 @@ class print_reg_plains(base.IOInstruction):
     arg_format = ['s']
 
 class cond_print_plain(base.IOInstruction):
-    """ Conditionally output clear register (with precision).
+    r""" Conditionally output clear register (with precision).
     Outputs :math:`x \cdot 2^p` where :math:`p` is the precision.
 
     :param: condition (cint, no output if zero)
@@ -1904,7 +1989,7 @@ class closeclientconnection(base.IOInstruction):
     code = base.opcodes['CLOSECLIENTCONNECTION']
     arg_format = ['ci']
 
-class writesharestofile(base.IOInstruction):
+class writesharestofile(base.VectorInstruction, base.IOInstruction):
     """ Write shares to ``Persistence/Transactions-P<playerno>.data``
     (appending at the end).
 
@@ -1917,11 +2002,12 @@ class writesharestofile(base.IOInstruction):
     __slots__ = []
     code = base.opcodes['WRITEFILESHARE']
     arg_format = tools.chain(['ci'], itertools.repeat('s'))
+    vector_index = 1
 
     def has_var_args(self):
         return True
 
-class readsharesfromfile(base.IOInstruction):
+class readsharesfromfile(base.VectorInstruction, base.IOInstruction):
     """ Read shares from ``Persistence/Transactions-P<playerno>.data``.
 
     :param: number of arguments to follow / number of shares plus two (int)
@@ -1933,6 +2019,7 @@ class readsharesfromfile(base.IOInstruction):
     __slots__ = []
     code = base.opcodes['READFILESHARE']
     arg_format = tools.chain(['ci', 'ciw'], itertools.repeat('sw'))
+    vector_index = 2
 
     def has_var_args(self):
         return True
@@ -2256,7 +2343,7 @@ class convint(base.Instruction):
 
 @base.vectorize
 class convmodp(base.Instruction):
-    """ Convert clear integer register (vector) to clear register
+    r""" Convert clear integer register (vector) to clear register
     (vector). If the bit length is zero, the unsigned conversion is
     used, otherwise signed conversion is used. This makes a difference
     when computing modulo a prime :math:`p`. Signed conversion of
@@ -2734,13 +2821,11 @@ class check(base.Instruction):
 @base.gf2n
 @base.vectorize
 class sqrs(base.CISC):
-    """ Secret squaring $s_i = s_j \cdot s_j$. """
+    r""" Secret squaring $s_i = s_j \cdot s_j$. """
     __slots__ = []
     arg_format = ['sw', 's']
     
     def expand(self):
-        if program.options.ring:
-            return muls(self.args[0], self.args[1], self.args[1])
         s = [program.curr_block.new_reg('s') for i in range(6)]
         c = [program.curr_block.new_reg('c') for i in range(2)]
         square(s[0], s[1])

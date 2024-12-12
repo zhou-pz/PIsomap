@@ -9,7 +9,6 @@
 using namespace std;
 
 #include "Math/gf2n.h"
-#include "Protocols/SPDZ.h"
 #include "Protocols/SemiShare.h"
 #include "ShareInterface.h"
 
@@ -37,6 +36,8 @@ template<class T> class TinierSecret;
 template<class T, class V>
 class Share_ : public ShareInterface
 {
+   static V mac_key;
+
    T a;        // The share
    V mac;      // Shares of the mac
 
@@ -73,8 +74,10 @@ class Share_ : public ShareInterface
    static void read_or_generate_mac_key(string directory, const Player& P,
            U& key);
 
-   static void specification(octetStream& os)
-     { T::specification(os); }
+   static void specification(octetStream& os);
+
+   static mac_key_type get_mac_key();
+   static void set_mac_key(const mac_key_type& mac_key);
 
    static Share_ constant(const open_type& aa, int my_num, const typename V::Scalar& alphai)
      { return Share_(aa, my_num, alphai); }
@@ -152,6 +155,8 @@ class Share_ : public ShareInterface
 template<class T>
 class Share : public Share_<SemiShare<T>, SemiShare<T>>
 {
+    typedef Share This;
+
 public:
     typedef Share_<SemiShare<T>, SemiShare<T>> super;
 
@@ -173,10 +178,12 @@ public:
     typedef Direct_MAC_Check<Share> Direct_MC;
     typedef ::Input<Share> Input;
     typedef ::PrivateOutput<Share> PrivateOutput;
+    typedef Beaver<This> BasicProtocol;
     typedef SPDZ<Share> Protocol;
     typedef MascotFieldPrep<Share> LivePrep;
     typedef MascotPrep<Share> RandomPrep;
     typedef MascotTriplePrep<Share> TriplePrep;
+    typedef DummyMatrixPrep<This> MatrixPrep;
 
     static const bool expensive = true;
 

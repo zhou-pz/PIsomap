@@ -32,8 +32,8 @@ as well as information on how to solve common issues.
 
 #### TL;DR (Binary Distribution on Linux or Source Distribution on macOS)
 
-This requires either a Linux distribution originally released 2014 or
-later (glibc 2.17) or macOS High Sierra or later as well as Python 3
+This requires either a Linux distribution originally released 2018 or
+later (glibc 2.18) or macOS High Sierra or later as well as Python 3
 and basic command-line utilities.
 
 Download and unpack the
@@ -56,7 +56,7 @@ parties and malicious security.
 On Linux, this requires a working toolchain and [all
 requirements](#requirements). On Ubuntu, the following might suffice:
 ```
-sudo apt-get install automake build-essential clang cmake git libboost-dev libboost-iostreams-dev libboost-thread-dev libgmp-dev libntl-dev libsodium-dev libssl-dev libtool python3
+sudo apt-get install automake build-essential clang cmake git libboost-dev libboost-filesystem-dev libboost-iostreams-dev libboost-thread-dev libgmp-dev libntl-dev libsodium-dev libssl-dev libtool python3
 ```
 On MacOS, this requires [brew](https://brew.sh) to be installed,
 which will be used for all dependencies.
@@ -68,7 +68,7 @@ security.
 make setup
 echo 1 2 3 4 > Player-Data/Input-P0-0
 echo 1 2 3 4 > Player-Data/Input-P1-0
-Scripts/compile-run.py -E mascot tutorial
+Scripts/compile-run.py mascot tutorial
 ```
 
 On strong enough hardware setups (several cores and GB of RAM), you
@@ -84,7 +84,7 @@ docker build --tag mpspdz:mascot-party --build-arg machine=mascot-party.x .
 Run the [the tutorial](Programs/Source/tutorial.mpc):
 
 ```
-docker run --rm -it mpspdz:mascot-party ./Scripts/mascot.sh tutorial
+docker run --rm -it mpspdz:mascot-party ./Scripts/compile-run.py mascot tutorial
 ```
 
 See the [`Dockerfile`](./Dockerfile) for examples of how it can be used.
@@ -191,7 +191,7 @@ there are a few things to consider:
       preprocessing in smaller batches at a higher asymptotic cost.
     - `--batch-size`: Preprocessing in smaller batches avoids generating
       too much but larger batches save communication rounds.
-    - `--direct`: In dishonest-majority protocols, direct communication
+    - `--direct`: In protocols with any number of parties, direct communication
       instead of star-shaped saves communication rounds at the expense
       of a quadratic amount. This might be beneficial with a small
       number of parties.
@@ -242,8 +242,9 @@ AES-NI pipelining (for garbled circuits).
 
 The software uses two different bytecode sets, one for
 arithmetic circuits and one for boolean circuits. The high-level code
-slightly differs between the two variants, but we aim to keep these
-differences a at minimum.
+differs between the two variants. Most computation functionality is
+available in both, but binary circuits are lacking some input-output
+functionality.
 
 In the section on computation we will explain how to compile a
 high-level program for the various computation domains and then how to
@@ -256,11 +257,9 @@ compute the preprocessing time for a particular computation.
 
 #### Requirements
 
- - GCC 5 or later (tested with up to 11) or LLVM/clang 6 or later
-   (tested with up to 14). The default is to use clang because it performs
-   better. Note that GCC 5/6 and clang 9 don't support libOTe, so you
-   need to deactivate its use for these compilers (see the next
-   section).
+ - GCC 7 or later (tested with up to 14) or LLVM/clang 10 or later
+   (tested with up to 19). The default is to use clang because it performs
+   better.
  - For protocols using oblivious transfer, libOTe with [the necessary
    patches](https://github.com/mkskeller/softspoken-implementation)
    but without SimplestOT. The easiest way is to run `make libote`,
@@ -309,9 +308,7 @@ compute the preprocessing time for a particular computation.
     - `SSL_DIR` should point to a local, unversioned directory to store ssl keys (the default is `Player-Data` in the current directory).
     - For homomorphic encryption with GF(2^40), set `USE_NTL = 1`.
     - To use KOS instead of SoftSpokenOT, add `USE_KOS = 1` and
-      `SECURE = -DINSECURE` to `CONFIG.mine`. This is necessary with
-      GCC 5 and 6 because these compilers don't support the C++
-      standard used by libOTe.
+      `SECURE = -DINSECURE` to `CONFIG.mine`.
     - On macOS, there have been issues with non-system compilers. Add
       `CXX = /usr/bin/g++` to fix them.
 
@@ -367,11 +364,14 @@ There are three ways of running computation:
    ```
 
    If <path> does not start with `/` (only one `/` after the
-   hostname), the path with be relative to the home directory of the
+   hostname), the path will be relative to the home directory of the
    user. Otherwise (`//` after the hostname it will be relative to the
    root directory.
 
    It is assumed that the SSH login is possible without password.
+
+   Adding the compiler option `-t` (`--tidy_output`) groups the output prints by
+   party; however, it delays the outputs until the execution is finished.
 
 Even with the integrated execution it is important to keep in mind
 that there are two different phases, the compilation and the run-time
@@ -399,8 +399,13 @@ the integer length. Note that `-P` is optional, and it involves
 algorithms that are more expensive while allowing for a wider range of
 integer lengths.
 
+The command-line options primarily affects non-linear computation such
+as comparisons. See the [documentation on non-linear
+computation](https://mp-spdz.readthedocs.io/en/latest/non-linear.html)
+for more details and pointers to relevant papers.
+
 Note that in this context integers do not wrap around according to the
-bit integer bit length but the length is used for non-linear
+integer bit length but the length is used for non-linear
 computations such as comparison.
 Overflow in secret integers might have security implications if no
 concrete prime is given.
@@ -559,6 +564,13 @@ This is particularly useful if want to add new command line arguments specifical
 
 Note that when using this approach, all objects provided in the high level interface (e.g. sint, print_ln) need to be imported, because the `.mpc` file is interpreted directly by Python (instead of being read by `compile.py`.)
 
+Furthermore, this only covers compilation, so you will need to run execution separately, for example:
+```
+Scripts/mascot.sh hello_world
+```
+
+Also note that programs in the above form are not compatible with `compile.py` and `compile-run.py`.
+
 #### Compiling and running programs from external directories
 
 Programs can also be edited, compiled and run from any directory with
@@ -583,6 +595,14 @@ $ ../MP-SPDZ/Scripts/rep-field.sh test
 ```
 
 ### TensorFlow inference
+
+**Note: All networks mentioned below are now supported by the
+[PyTorch
+interface](https://mp-spdz.readthedocs.io/en/latest/machine-learning.html#loading-pre-trained-models),
+which is better integrated and thus easier to use. This section is
+merely kept to document the approach used for [an earlier
+paper](https://eprint.iacr.org/2019/131), but it is recommended to use
+the PyTorch interface.**
 
 MP-SPDZ supports inference with selected TensorFlow graphs, in
 particular DenseNet, ResNet, and SqueezeNet as used in
@@ -621,7 +641,8 @@ can emulate the computation as follows:
 
 ``` ./emulate.x <program> ```
 
-This runs the compiled bytecode in cleartext computation.
+This runs the compiled bytecode in cleartext computation, that is,
+*no* multi-party computation is performed.
 
 ## Dishonest majority
 
@@ -647,7 +668,7 @@ The following table shows all programs for dishonest-majority computation using 
 | `cowgear-party.x` | Adapted [LowGear](https://eprint.iacr.org/2017/1230) | Mod prime | Covert | `cowgear.sh` |
 | `chaigear-party.x` | Adapted [HighGear](https://eprint.iacr.org/2017/1230) | Mod prime | Covert | `chaigear.sh` |
 | `hemi-party.x` | Semi-homomorphic encryption | Mod prime | Semi-honest | `hemi.sh` |
-| `temi-party.x` | Adapted [CDN01](https://eprint.iacr.org/2000/055) | Mod prime | Semi-honest | `temi.sh` |
+| `temi-party.x` | Adapted [CDN01](https://eprint.iacr.org/2022/933) | Mod prime | Semi-honest | `temi.sh` |
 | `soho-party.x` | Somewhat homomorphic encryption | Mod prime | Semi-honest | `soho.sh` |
 | `semi-bin-party.x` | OT-based | Binary | Semi-honest | `semi-bin.sh` |
 | `tiny-party.x` | Adapted SPDZ2k | Binary | Malicious | `tiny.sh` |
@@ -669,6 +690,9 @@ Tiny denotes the adaption of SPDZ2k to the binary setting. In
 particular, the SPDZ2k sacrifice does not work for bits, so we replace
 it by cut-and-choose according to [Furukawa et
 al.](https://eprint.iacr.org/2016/944)
+Tinier on the other hand denotes the protocol by [Frederiksen et
+al.](https://eprint.iacr.org/2015/901) also using the cut-and-choose
+sacrifice by Furukawa et al.
 
 The virtual machines for LowGear and HighGear run a key generation
 similar to the one by [Rotaru et
@@ -684,7 +708,8 @@ security similar to Semi, that is, generating additively shared Beaver
 triples using semi-homomorphic encryption.
 Temi in turn denotes the adaption of
 [Cramer et al.](https://eprint.iacr.org/2000/055) to LWE-based
-semi-homomorphic encryption.
+semi-homomorphic encryption as described in Appendix B of [this
+work](https://eprint.iacr.org/2022/933).
 Both Hemi and Temi use the diagonal packing by [Halevi and
 Shoup](https://eprint.iacr.org/2014/106) for matrix multiplication.
 
@@ -1106,25 +1131,6 @@ If you run the preprocessing on different hosts, make sure to use the
 same player number in the preprocessing and the online phase.
 
 ## Benchmarking offline phases
-
-#### SPDZ-2 offline phase
-
-This implementation is suitable to generate the preprocessed data used in the online phase.
-You need to compile with `USE_NTL = 1` in `CONFIG.mine` to run this.
-
-For quick run on one machine, you can call the following:
-
-`./spdz2-offline.x -p 0 & ./spdz2-offline.x -p 1`
-
-More generally, run the following on every machine:
-
-`./spdz2-offline.x -p <number of party> -N <total number of parties> -h <hostname of party 0> -c <covert security parameter>`
-
-The number of parties are counted from 0. As seen in the quick example, you can omit the total number of parties if it is 2 and the hostname if all parties run on the same machine. Invoke `./spdz2-offline.x` for more explanation on the options.
-
-`./spdz2-offline.x` provides covert security according to some parameter c (at least 2). A malicious adversary will get caught with probability 1-1/c. There is a linear correlation between c and the running time, that is, running with 2c takes twice as long as running with c. The default for c is 10.
-
-The program will generate every kind of randomness required by the online phase except input tuples until you stop it. You can shut it down gracefully pressing Ctrl-c (or sending the interrupt signal `SIGINT`), but only after an initial phase, the end of which is marked by the output `Starting to produce gf2n`. Note that the initial phase has been reported to take up to an hour. Furthermore, 3 GB of RAM are required per party.
 
 #### Benchmarking the MASCOT or SPDZ2k offline phase
 
