@@ -20,7 +20,7 @@ SpdzWiseRep3Shuffler<T>::SpdzWiseRep3Shuffler(StackedVector<T>& a, size_t n,
     vector<size_t> sources{input_base};
     vector<shuffle_type> shuffles{store.get(handle)};
     vector<bool> reverses{true};
-    this->applyMultiple(a, sizes, destinations, sources, unit_sizes, shuffles, reverses);
+    this->apply_multiple(a, sizes, destinations, sources, unit_sizes, shuffles, reverses);
 }
 
 template<class T>
@@ -35,40 +35,8 @@ int SpdzWiseRep3Shuffler<T>::generate(int n_shuffle, store_type& store)
     return internal.generate(n_shuffle, store);
 }
 
-// template<class T>
-// void SpdzWiseRep3Shuffler<T>::apply(StackedVector<T>& a, size_t n,
-//         int unit_size, size_t output_base, size_t input_base,
-//         shuffle_type& shuffle, bool reverse)
-// {
-//     stats[n / unit_size] += unit_size;
-//
-//     StackedVector<typename T::part_type::Honest> to_shuffle;
-//     to_shuffle.reserve(2 * n);
-//
-//     for (size_t i = 0; i < n; i++)
-//     {
-//         auto& x = a[input_base + i];
-//         to_shuffle.push_back(x.get_share());
-//         to_shuffle.push_back(x.get_mac());
-//     }
-//
-//     internal.apply(to_shuffle, 2 * n, 2 * unit_size, 0, 0, shuffle, reverse);
-//
-//
-//     for (size_t i = 0; i < n; i++)
-//     {
-//         auto& x = a[output_base + i];
-//         x.set_share(to_shuffle[2 * i]);
-//         x.set_mac(to_shuffle[2 * i + 1]);
-//         proc.protocol.add_to_check(x);
-//     }
-//
-//     proc.protocol.maybe_check();
-// }
-
-
 template<class T>
-void SpdzWiseRep3Shuffler<T>::applyMultiple(StackedVector<T>& a, vector<size_t>& sizes, vector<size_t>& destinations, vector<size_t>& sources,
+void SpdzWiseRep3Shuffler<T>::apply_multiple(StackedVector<T>& a, vector<size_t>& sizes, vector<size_t>& destinations, vector<size_t>& sources,
                                     vector<size_t>& unit_sizes, vector<size_t>& handles, vector<bool>& reverses, store_type& store) {
     vector<shuffle_type> shuffles;
     for (size_t &handle : handles) {
@@ -76,12 +44,12 @@ void SpdzWiseRep3Shuffler<T>::applyMultiple(StackedVector<T>& a, vector<size_t>&
         shuffles.push_back(shuffle);
     }
 
-    applyMultiple(a, sizes, destinations, sources, unit_sizes, shuffles, reverses);
+    apply_multiple(a, sizes, destinations, sources, unit_sizes, shuffles, reverses);
 }
 
 
 template<class T>
-void SpdzWiseRep3Shuffler<T>::applyMultiple(StackedVector<T> &a, vector<size_t> &sizes, vector<size_t> &destinations,
+void SpdzWiseRep3Shuffler<T>::apply_multiple(StackedVector<T> &a, vector<size_t> &sizes, vector<size_t> &destinations,
     vector<size_t> &sources, vector<size_t> &unit_sizes, vector<shuffle_type> &shuffles, vector<bool> &reverse) {
 
     const size_t n_shuffles = sizes.size();
@@ -111,7 +79,7 @@ void SpdzWiseRep3Shuffler<T>::applyMultiple(StackedVector<T> &a, vector<size_t> 
         }
     }
 
-    internal.applyMultiple(temporary_memory, mapped_sizes, mapped_positions, mapped_positions, mapped_unit_sizes, shuffles, reverse);
+    internal.apply_multiple(temporary_memory, mapped_sizes, mapped_positions, mapped_positions, mapped_unit_sizes, shuffles, reverse);
 
     for (size_t current_shuffle = 0; current_shuffle < n_shuffles; current_shuffle++)
     {

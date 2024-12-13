@@ -63,8 +63,8 @@ private:
      */
     vector<vector<T>> configure(int config_player, vector<int>* perm, int n);
 
-    int prep_multiple(StackedVector<T>& a, vector<size_t> &sizes, vector<size_t> &sources, vector<size_t> &unit_sizes, vector<vector<T>>& toShuffle, vector<bool> &exact);
-    void finalize_multiple(StackedVector<T>& a, vector<size_t>& sizes, vector<size_t>& unit_sizes, vector<size_t>& destinations, vector<bool>& isExact, vector<vector<T>>& toShuffle);
+    int prep_multiple(StackedVector<T>& a, vector<size_t> &sizes, vector<size_t> &sources, vector<size_t> &unit_sizes, vector<vector<T>>& to_shuffle, vector<bool> &exact);
+    void finalize_multiple(StackedVector<T>& a, vector<size_t>& sizes, vector<size_t>& unit_sizes, vector<size_t>& destinations, vector<bool>& isExact, vector<vector<T>>& to_shuffle);
 
     void parallel_waksman_round(size_t pass, int depth, bool inwards, vector<vector<T>>& toShuffle, vector<size_t>& unit_sizes, vector<bool>& reverse, vector<shuffle_type>& shuffles);
     vector<array<int, 5>> waksman_round_init(vector<T>& toShuffle, size_t shuffle_unit_size, int depth, vector<vector<T>>& iter_waksman_config, bool inwards, bool reverse);
@@ -80,9 +80,9 @@ public:
 
     int generate(int n_shuffle, store_type& store);
 
-    void applyMultiple(StackedVector<T>& a, vector<size_t>& sizes, vector<size_t>& destinations, vector<size_t>& sources,
+    void apply_multiple(StackedVector<T>& a, vector<size_t>& sizes, vector<size_t>& destinations, vector<size_t>& sources,
                        vector<size_t>& unit_sizes, vector<size_t>& handles, vector<bool>& reverse, store_type& store);
-    void applyMultiple(StackedVector<T>& a, vector<size_t>& sizes, vector<size_t>& destinations, vector<size_t>& sources,
+    void apply_multiple(StackedVector<T>& a, vector<size_t>& sizes, vector<size_t>& destinations, vector<size_t>& sources,
                        vector<size_t>& unit_sizes, vector<shuffle_type>& shuffles, vector<bool>& reverse);
 
     /**

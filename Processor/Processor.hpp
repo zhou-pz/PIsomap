@@ -928,7 +928,7 @@ void SubProcessor<T>::apply_shuffle(const Instruction& instruction,
         shuffles[i] = Proc->read_Ci(args[6 * i + 4]);
         reverse[i] = args[6 * i + 5];
     }
-    shuffler.applyMultiple(S, sizes, destinations, sources, unit_sizes, shuffles, reverse, shuffle_store);
+    shuffler.apply_multiple(S, sizes, destinations, sources, unit_sizes, shuffles, reverse, shuffle_store);
 
     maybe_check();
 }
