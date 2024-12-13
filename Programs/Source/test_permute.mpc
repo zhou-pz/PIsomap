@@ -1,3 +1,5 @@
+from Compiler.library import get_number_of_players
+from Compiler.util import if_else
 
 
 def test_allocator():
@@ -161,6 +163,60 @@ def test_permute_matrix(timer_base: int, value_type=sint) -> None:
         print_ln("%s", row)
     test_permuted_matrix(m2, p2)
 
+def test_secure_shuffle_still_works(size: int, timer_base: int):
+    arr = Array.create_from([sint(i) for i in range(size)])
+    start_timer(timer_base)
+    arr.secure_shuffle()
+    stop_timer(timer_base)
+    arr = arr.reveal()
+
+    n_matched = cint(0)
+    @for_range(len(arr))
+    def count_matches(i: cint) -> None:
+        n_matched.update(n_matched + (arr[i] == i))
+    @if_(n_matched == len(arr))
+    def didnt_permute():
+        print_ln("Shuffle potentially didn't work (permutation might have been identity by chance).")
+        crash()
+
+def test_inverse_permutation_still_works(size, timer_base: int):
+    @if_e(get_number_of_players() == 2)
+    def test():
+        program.use_invperm(True)
+
+        arr = Array.create_from([sint(i) for i in range(size)])
+        p_as_arr = Array.create_from(arr[:])
+        p_inv_as_arr = Array.create_from(arr[:])
+        start_timer(timer_base + 1)
+        p1 = sint.get_secure_shuffle(size)
+        p_as_arr.secure_permute(p1, reverse=True)
+        p_inv_as_arr.secure_permute(p1)
+        p_inv_as_arr = p_inv_as_arr.reveal()
+        stop_timer(timer_base + 1)
+
+        start_timer(timer_base + 2)
+        p_inv2 = Array.create_from(p_as_arr[:].inverse_permutation())
+        # p_inv2.inverse_permutation()
+        p_inv2 = p_inv2.reveal()
+        stop_timer(timer_base + 2)
+
+        print_ln("Permutation: %s", p_as_arr.reveal())
+        print_ln("Inverse from secure_permute: %s", p_inv_as_arr)
+        print_ln("Inverse from inverse_permut: %s", p_inv2)
+
+        @for_range(size)
+        def check(i):
+            @if_(p_inv_as_arr[i] != p_inv2[i])
+            def fail():
+                print_ln("Inverse permutation don't match.")
+                crash()
+    @else_
+    def _():
+        print_ln("Inverse permutation is only tested in 2-party computation.")
+
+
+
+
 test_allocator()
 test_case([10, 15], 10)
 test_case([10, 15, 20], 20)
@@ -171,3 +227,6 @@ test_parallel_permutation_equals_sequential_permutation([5,10],50)
 
 test_permute_matrix(60)
 test_permute_matrix(70, value_type=sfix)
+
+test_secure_shuffle_still_works(32, 80)
+test_inverse_permutation_still_works(8, 80)

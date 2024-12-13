@@ -13,8 +13,14 @@ SpdzWiseRep3Shuffler<T>::SpdzWiseRep3Shuffler(StackedVector<T>& a, size_t n,
 {
     store_type store;
     int handle = generate(n / unit_size, store);
-    apply(a, n, unit_size, output_base, input_base, store.get(handle),
-            false);
+
+    vector<size_t> sizes{n};
+    vector<size_t> unit_sizes{static_cast<size_t>(unit_size)};
+    vector<size_t> destinations{output_base};
+    vector<size_t> sources{input_base};
+    vector<shuffle_type> shuffles{store.get(handle)};
+    vector<bool> reverses{true};
+    this->applyMultiple(a, sizes, destinations, sources, unit_sizes, shuffles, reverses);
 }
 
 template<class T>
@@ -29,36 +35,36 @@ int SpdzWiseRep3Shuffler<T>::generate(int n_shuffle, store_type& store)
     return internal.generate(n_shuffle, store);
 }
 
-template<class T>
-void SpdzWiseRep3Shuffler<T>::apply(StackedVector<T>& a, size_t n,
-        int unit_size, size_t output_base, size_t input_base,
-        shuffle_type& shuffle, bool reverse)
-{
-    stats[n / unit_size] += unit_size;
-
-    StackedVector<typename T::part_type::Honest> to_shuffle;
-    to_shuffle.reserve(2 * n);
-
-    for (size_t i = 0; i < n; i++)
-    {
-        auto& x = a[input_base + i];
-        to_shuffle.push_back(x.get_share());
-        to_shuffle.push_back(x.get_mac());
-    }
-
-    internal.apply(to_shuffle, 2 * n, 2 * unit_size, 0, 0, shuffle, reverse);
-
-
-    for (size_t i = 0; i < n; i++)
-    {
-        auto& x = a[output_base + i];
-        x.set_share(to_shuffle[2 * i]);
-        x.set_mac(to_shuffle[2 * i + 1]);
-        proc.protocol.add_to_check(x);
-    }
-
-    proc.protocol.maybe_check();
-}
+// template<class T>
+// void SpdzWiseRep3Shuffler<T>::apply(StackedVector<T>& a, size_t n,
+//         int unit_size, size_t output_base, size_t input_base,
+//         shuffle_type& shuffle, bool reverse)
+// {
+//     stats[n / unit_size] += unit_size;
+//
+//     StackedVector<typename T::part_type::Honest> to_shuffle;
+//     to_shuffle.reserve(2 * n);
+//
+//     for (size_t i = 0; i < n; i++)
+//     {
+//         auto& x = a[input_base + i];
+//         to_shuffle.push_back(x.get_share());
+//         to_shuffle.push_back(x.get_mac());
+//     }
+//
+//     internal.apply(to_shuffle, 2 * n, 2 * unit_size, 0, 0, shuffle, reverse);
+//
+//
+//     for (size_t i = 0; i < n; i++)
+//     {
+//         auto& x = a[output_base + i];
+//         x.set_share(to_shuffle[2 * i]);
+//         x.set_mac(to_shuffle[2 * i + 1]);
+//         proc.protocol.add_to_check(x);
+//     }
+//
+//     proc.protocol.maybe_check();
+// }
 
 
 template<class T>

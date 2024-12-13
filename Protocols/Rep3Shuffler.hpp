@@ -13,8 +13,14 @@ Rep3Shuffler<T>::Rep3Shuffler(StackedVector<T> &a, size_t n, int unit_size,
                               size_t output_base, size_t input_base, SubProcessor<T> &proc) : proc(proc) {
     store_type store;
     int handle = generate(n / unit_size, store);
-    apply(a, n, unit_size, output_base, input_base, store.get(handle),
-          false);
+
+    vector<size_t> sizes{n};
+    vector<size_t> unit_sizes{static_cast<size_t>(unit_size)};
+    vector<size_t> destinations{output_base};
+    vector<size_t> sources{input_base};
+    vector<shuffle_type> shuffles{store.get(handle)};
+    vector<bool> reverses{true};
+    this->applyMultiple(a, sizes, destinations, sources, unit_sizes, shuffles, reverses);
 }
 
 template<class T>
@@ -37,18 +43,18 @@ int Rep3Shuffler<T>::generate(int n_shuffle, store_type &store) {
     return res;
 }
 
-template<class T>
-void Rep3Shuffler<T>::apply(StackedVector<T> &a, size_t n, int unit_size,
-                            size_t output_base, size_t input_base, shuffle_type &shuffle,
-                            bool reverse) {
-    vector<size_t> sizes{n};
-    vector<size_t> unit_sizes{static_cast<size_t>(unit_size)};
-    vector<size_t> destinations{output_base};
-    vector<size_t> sources{input_base};
-    vector<shuffle_type> shuffles{shuffle};
-    vector<bool> reverses{reverse};
-    this->applyMultiple(a, sizes, unit_sizes, destinations, sources, shuffles, reverses);
-}
+// template<class T>
+// void Rep3Shuffler<T>::apply(StackedVector<T> &a, size_t n, int unit_size,
+//                             size_t output_base, size_t input_base, shuffle_type &shuffle,
+//                             bool reverse) {
+//     vector<size_t> sizes{n};
+//     vector<size_t> unit_sizes{static_cast<size_t>(unit_size)};
+//     vector<size_t> destinations{output_base};
+//     vector<size_t> sources{input_base};
+//     vector<shuffle_type> shuffles{shuffle};
+//     vector<bool> reverses{reverse};
+//     this->applyMultiple(a, sizes, unit_sizes, destinations, sources, shuffles, reverses);
+// }
 
 template<class T>
 void Rep3Shuffler<T>::applyMultiple(StackedVector<T> &a, vector<size_t> &sizes, vector<size_t> &destinations,
