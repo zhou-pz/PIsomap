@@ -750,7 +750,7 @@ unsigned BaseInstruction::get_max_reg(int reg_type) const
       {
           assert(it < start.end());
           int n = *it;
-          res = max(res, *it++);
+          res = max(res, *++it + size);
           it += n - 1;
       }
       return res;
