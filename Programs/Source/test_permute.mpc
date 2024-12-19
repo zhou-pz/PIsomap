@@ -137,6 +137,7 @@ def test_permute_matrix(timer_base: int, value_type=sint) -> None:
     print_ln("Pre-create matrix")
     m1 = Matrix.create_from([[value_type(5 * i + j) for j in range(5)] for i in range(5)])
     m2 = Matrix.create_from([[value_type(6 * i + j) for j in range(6)] for i in range(5)])
+    m3 = Matrix.create_from([[value_type(6 * i + j) for j in range(6)] for i in range(5)])
     print_ln("post-create matrix")
 
     p1 = sint.get_secure_shuffle(5)
@@ -148,10 +149,14 @@ def test_permute_matrix(timer_base: int, value_type=sint) -> None:
     start_timer(timer_base + 2)
     m2.secure_permute(p2)
     stop_timer(timer_base + 2)
+    start_timer(timer_base + 3)
+    m3.secure_permute(p2, n_threads=3)
+    stop_timer(timer_base + 3)
     print_ln(f"Timer {timer_base + 1} and {timer_base + 2} should require equal amount of rounds.")
 
     m1 = m1.reveal()
     m2 = m2.reveal()
+    m3 = m3.reveal()
 
     print_ln("Permuted m1:")
     for row in m1:
@@ -162,6 +167,11 @@ def test_permute_matrix(timer_base: int, value_type=sint) -> None:
     for row in m2:
         print_ln("%s", row)
     test_permuted_matrix(m2, p2)
+
+    print_ln("Permuted m3 (should be equal to m2):")
+    for row in m3:
+        print_ln("%s", row)
+    test_permuted_matrix(m3, p2)
 
 def test_secure_shuffle_still_works(size: int, timer_base: int):
     arr = Array.create_from([sint(i) for i in range(size)])
@@ -220,7 +230,7 @@ def test_inverse_permutation_still_works(size, timer_base: int):
 test_allocator()
 test_case([10, 15], 10)
 test_case([10, 15, 20], 20)
-test_case([8,16], 30)
+test_case([16,32], 30)
 test_case([256], 40)
 
 test_parallel_permutation_equals_sequential_permutation([5,10],50)

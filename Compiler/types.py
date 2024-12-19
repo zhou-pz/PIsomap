@@ -7274,7 +7274,7 @@ class SubMultiArray(_vectorizable):
             self.secure_permute(perm)
             delshuffle(perm)
 
-    def secure_permute(self, permutation, reverse=False, n_parallel=None):
+    def secure_permute(self, permutation, reverse=False, n_threads=None):
         """ Securely permute rows (first index). See
         :py:func:`secure_shuffle` for references.
 
@@ -7282,16 +7282,16 @@ class SubMultiArray(_vectorizable):
         :param reverse: whether to apply inverse (default: False)
 
         """
-        if self.value_type == sint and False:
+        if self.value_type == sint:
             unit_size = self.get_part_size()
             n = self.sizes[0] * unit_size
             res = sint(size=n)
             applyshuffle(n, res, self[:], unit_size, permutation, reverse)
             self.assign_vector(res)
         else:
-            if n_parallel is None:
-                n_parallel = self.get_part_size()
-            @library.for_range_parallel(n_parallel, self.get_part_size())
+            if n_threads is not None:
+                permutation = MemValue(permutation)
+            @library.for_range_multithread(n_threads, 1, self.get_part_size())
             def iter(i):
                 column = self.get_column(i)
                 column = column.secure_permute(permutation, reverse=reverse)
