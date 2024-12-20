@@ -7280,7 +7280,8 @@ class SubMultiArray(_vectorizable):
 
         :param permutation: output of :py:func:`sint.get_secure_shuffle()`
         :param reverse: whether to apply inverse (default: False)
-
+        :param n_threads: How many threads should be used. Will not multithread when set to None (default: None)
+        :param n_parallel: How many columns should be permuted in parallel. Will use the compiler's optimization budget is set to None. (default: None).
         """
         if (self.value_type == sint) and (n_threads is None):
             # Use only a single shuffle instruction if applicable and permutation is single-threaded anyway.
