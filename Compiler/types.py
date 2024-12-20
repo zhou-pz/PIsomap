@@ -7274,7 +7274,7 @@ class SubMultiArray(_vectorizable):
             self.secure_permute(perm)
             delshuffle(perm)
 
-    def secure_permute(self, permutation, reverse=False, n_threads=None):
+    def secure_permute(self, permutation, reverse=False, n_threads=None, n_parallel=None):
         """ Securely permute rows (first index). See
         :py:func:`secure_shuffle` for references.
 
@@ -7282,7 +7282,8 @@ class SubMultiArray(_vectorizable):
         :param reverse: whether to apply inverse (default: False)
 
         """
-        if self.value_type == sint:
+        if (self.value_type == sint) and (n_threads is None):
+            # Use only a single shuffle instruction if applicable and permutation is single-threaded anyway.
             unit_size = self.get_part_size()
             n = self.sizes[0] * unit_size
             res = sint(size=n)
@@ -7291,11 +7292,19 @@ class SubMultiArray(_vectorizable):
         else:
             if n_threads is not None:
                 permutation = MemValue(permutation)
-            @library.for_range_multithread(n_threads, 1, self.get_part_size())
-            def iter(i):
-                column = self.get_column(i)
-                column = column.secure_permute(permutation, reverse=reverse)
-                self.set_column(i, column)
+
+            if n_parallel is None:
+                @library.for_range_opt_multithread(n_threads, self.get_part_size())
+                def iter(i):
+                    column = self.get_column(i)
+                    column = column.secure_permute(permutation, reverse=reverse)
+                    self.set_column(i, column)
+            else:
+                @library.for_range_multithread(n_threads, n_parallel, self.get_part_size())
+                def iter(i):
+                    column = self.get_column(i)
+                    column = column.secure_permute(permutation, reverse=reverse)
+                    self.set_column(i, column)
 
     def sort(self, key_indices=None, n_bits=None, batcher=False):
         """ Sort sub-arrays (different first index) in place.

@@ -2763,6 +2763,7 @@ class applyshuffle(shuffle_base, base.Mergeable):
     __slots__ = []
     code = base.opcodes['APPLYSHUFFLE']
     arg_format = itertools.cycle(['int', 'sw','s','int','ci','int'])
+    is_vec = lambda self: True # Ensures dead-code elimination works.
 
     def __init__(self, *args, **kwargs):
         super(applyshuffle, self).__init__(*args, **kwargs)
