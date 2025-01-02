@@ -3431,6 +3431,7 @@ class _bitint(Tape._no_truth):
     log_rounds = False
     linear_rounds = False
     comp_result = staticmethod(lambda x: x)
+    reverse_type = lambda *args: False
 
     @staticmethod
     def half_adder(a, b):
@@ -3717,6 +3718,8 @@ class _bitint(Tape._no_truth):
             return self.bit_comparator(a, b)
 
     def __lt__(self, other):
+        if self.reverse_type(other):
+            return other > self
         if program.options.comparison == 'log':
             x, not_equal = self.comparison(other)
             res = util.if_else(not_equal, x, 0)
@@ -3725,6 +3728,8 @@ class _bitint(Tape._no_truth):
         return self.comp_result(res)
 
     def __le__(self, other):
+        if self.reverse_type(other):
+            return other >= self
         if program.options.comparison == 'log':
             x, not_equal = self.comparison(other)
             res = util.if_else(not_equal, x, x.long_one())
@@ -3739,6 +3744,8 @@ class _bitint(Tape._no_truth):
         return (self <= other).bit_not()
 
     def __eq__(self, other, bit_length=None):
+        if self.reverse_type(other):
+            return other == self
         diff = self ^ other
         diff_bits = [x.bit_not() for x in diff.bit_decompose()[:bit_length]]
         return self.comp_result(util.tree_reduce(lambda x, y: x.bit_and(y),
