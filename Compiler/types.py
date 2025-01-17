@@ -6415,6 +6415,12 @@ class Array(_vectorizable):
             library.print_str('%s', self[self.length - 1].reveal())
             library.print_str(']' + end)
 
+    def output(self, **kwargs):
+        try:
+            library.print_str('%s', self[:], **kwargs)
+        except:
+            MultiArray.output(self, **kwargs)
+
     def reveal_to_binary_output(self, player=None):
         """ Reveal to binary output if supported by type.
 
@@ -7391,6 +7397,13 @@ class SubMultiArray(_vectorizable):
                 self[i].print_reveal_nested(end=', ')
             self[len(self) - 1].print_reveal_nested(end='')
             library.print_str(']' + end)
+
+    def output(self, **kwargs):
+        library.print_str('[')
+        @library.for_range(len(self) - 1)
+        def _(i):
+            library.print_str('%s, ', self[i], **kwargs)
+        library.print_str('%s]', self[len(self) - 1], **kwargs)
 
     def reveal_to_binary_output(self, player=None):
         """ Reveal to binary output if supported by type.
