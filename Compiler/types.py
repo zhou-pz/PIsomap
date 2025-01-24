@@ -4697,7 +4697,7 @@ class _fix(_single):
             a = b*(_v.v << (p)) + (1-b)*(_v.v >> (-p))
             self.v = (1-2*_v.s)*a
         elif isinstance(_v, type(self)):
-            self.v = _v.v
+            self.v = self.int_type(_v.v)
         elif isinstance(_v, cfix):
             self.v = self.int_type(adjust(_v))
         elif isinstance(_v, (MemValue, MemFix)):
