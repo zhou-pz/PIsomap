@@ -4096,7 +4096,7 @@ class cfix(_number, _structure):
             v = self.int_rep(v, f=f, k=k)
             self.v = cint(v, size=size)
         elif isinstance(v, cfix):
-            self.v = v.v
+            self.v = cint(v.v)
         elif v is None:
             self.v = cint(0)
         else:
