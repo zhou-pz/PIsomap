@@ -179,8 +179,11 @@ class bits(Tape.Register, _structure, _bit):
                 inst.ldbits(self[i], min(self.unit, self.n - i * self.unit), 0)
         elif (isinstance(self, type(other)) or isinstance(other, type(self))) \
              and self.n == other.n:
-            for i in range(math.ceil(self.n / self.unit)):
-                self.mov(self[i], other[i])
+            try:
+                self.mov(self, other)
+            except AssertionError:
+                for i in range(math.ceil(self.n / self.unit)):
+                    self.mov(self[i], other[i])
         elif isinstance(other, sintbit) and isinstance(self, sbits):
             assert len(other) == 1
             r = sint.get_dabit()
@@ -1031,7 +1034,9 @@ class sbitvec(_vec, _bit, _binary):
                 res.append([x * sbits.get_type(m)().long_one()
                             for x in util.bit_decompose(y, len(self.v))])
             else:
-                res.append([x.expand(m) if (expand and isinstance(x, bits)) else x for x in y.v])
+                v = [type(x)(x) if isinstance(x, bits) else x for x in y.v]
+                res.append([x.expand(m) if (expand and isinstance(x, bits))
+                            else x for x in v])
         return res
     def demux(self):
         if len(self) == 1:
