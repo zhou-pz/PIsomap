@@ -2002,6 +2002,13 @@ class personal(Tape._no_truth):
         self._san(value)
         self._v[index] = value
 
+    def get_vector(self, *args, **kwargs):
+        return personal(self.player, self._v.get_vector(*args, **kwargs))
+
+    @property
+    def size(self):
+        return self._v.size
+
     __getitem__ = lambda self, index: personal(self.player, self._v[index])
 
     __add__ = lambda self, other: personal(self.player, self._san(other) + other)
