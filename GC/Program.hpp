@@ -115,7 +115,7 @@ BreakType Program::execute(Processor<T>& Proc, U& dynamic_memory,
         auto& instruction = p[Proc.PC++];
         switch (instruction.get_opcode())
         {
-#define X(NAME, CODE) case NAME: CODE; break;
+#define X(NAME, CODE) case NAME: {CODE;} break;
         INSTRUCTIONS
 #undef X
         default:
