@@ -165,17 +165,8 @@ void Machine<sint, sgf2n>::prepare(const string& progname_str)
     {
       if (prog.writes_persistence)
         {
-          string filename = Binary_File_IO::filename(my_number);
-          ifstream pers(filename);
-          try
-          {
-              check_file_signature<sint>(pers, filename);
-          }
-          catch (signature_mismatch&)
-          {
-              ofstream pers(filename, ios::binary);
-              file_signature<sint>().output(pers);
-          }
+          Binary_File_IO<sint>::reset(my_number);
+          Binary_File_IO<sgf2n>::reset(my_number);
           break;
         }
     }

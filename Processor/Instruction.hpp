@@ -328,6 +328,7 @@ void BaseInstruction::parse_operands(istream& s, int pos, int file_pos)
       // read from file, input is opcode num_args, 
       //   start_file_posn (read), end_file_posn(write) var1, var2, ...
       case READFILESHARE:
+      case GREADFILESHARE:
       case CALL_TAPE:
         num_var_args = get_int(s) - 2;
         r[0] = get_int(s);
@@ -397,6 +398,7 @@ void BaseInstruction::parse_operands(istream& s, int pos, int file_pos)
       case EDABIT:
       case SEDABIT:
       case WRITEFILESHARE:
+      case GWRITEFILESHARE:
       case CONCATS:
           num_var_args = get_int(s) - 1;
           r[0] = get_int(s);
@@ -1371,11 +1373,21 @@ inline void Instruction::execute(Processor<sint, sgf2n>& Proc) const
         break;
       case WRITEFILESHARE:
         // Write shares to file system
-        Proc.write_shares_to_file(Proc.read_Ci(r[0]), start, size);
+        Procp.write_shares_to_file(Proc.read_Ci(r[0]), start, size);
         return;
       case READFILESHARE:
         // Read shares from file system
-        Proc.read_shares_from_file(Proc.read_Ci(r[0]), r[1], start, size);
+        Procp.read_shares_from_file(Proc.read_Ci(r[0]), r[1], start, size,
+            Proc);
+        return;
+      case GWRITEFILESHARE:
+        // Write shares to file system
+        Proc2.write_shares_to_file(Proc.read_Ci(r[0]), start, size);
+        return;
+      case GREADFILESHARE:
+        // Read shares from file system
+        Proc2.read_shares_from_file(Proc.read_Ci(r[0]), r[1], start, size,
+            Proc);
         return;
       case PUBINPUT:
         Proc.get_Cp_ref(r[0]) = Proc.template

@@ -1989,6 +1989,7 @@ class closeclientconnection(base.IOInstruction):
     code = base.opcodes['CLOSECLIENTCONNECTION']
     arg_format = ['ci']
 
+@base.gf2n
 class writesharestofile(base.VectorInstruction, base.IOInstruction):
     """ Write shares to ``Persistence/Transactions-P<playerno>.data``
     (appending at the end).
@@ -2001,12 +2002,13 @@ class writesharestofile(base.VectorInstruction, base.IOInstruction):
     """
     __slots__ = []
     code = base.opcodes['WRITEFILESHARE']
-    arg_format = tools.chain(['ci'], itertools.repeat('s'))
+    arg_format = tools.chain(['ci'], tools.cycle(['s']))
     vector_index = 1
 
     def has_var_args(self):
         return True
 
+@base.gf2n
 class readsharesfromfile(base.VectorInstruction, base.IOInstruction):
     """ Read shares from ``Persistence/Transactions-P<playerno>.data``.
 
@@ -2018,7 +2020,7 @@ class readsharesfromfile(base.VectorInstruction, base.IOInstruction):
     """
     __slots__ = []
     code = base.opcodes['READFILESHARE']
-    arg_format = tools.chain(['ci', 'ciw'], itertools.repeat('sw'))
+    arg_format = tools.chain(['ci', 'ciw'], tools.cycle(['sw']))
     vector_index = 2
 
     def has_var_args(self):

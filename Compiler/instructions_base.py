@@ -369,7 +369,7 @@ def gf2n(instruction):
         if isinstance(arg_format, list):
             __format = []
             for __f in arg_format:
-                if __f in ('int', 'long', 'p', 'ci', 'str'):
+                if __f in ('int', 'long', 'p', 'ci', 'ciw', 'str'):
                     __format.append(__f)
                 else:
                     __format.append(__f[0] + 'g' + __f[1:])

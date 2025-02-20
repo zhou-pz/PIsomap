@@ -88,7 +88,7 @@ Processor<sint, sgf2n>::Processor(int thread_num,Player& P,
   Procb(machine.bit_memories),
   Proc2(*this,MC2,DataF.DataF2,P),Procp(*this,MCp,DataF.DataFp,P),
   external_clients(machine.external_clients),
-  binary_file_io(Binary_File_IO()), client_timer(client_stats.timer)
+  client_timer(client_stats.timer)
 {
   reset(program,0);
 
@@ -388,12 +388,13 @@ void Processor<sint, sgf2n>::read_socket_private(int client_id,
 // Read share data from a file starting at file_pos until registers filled.
 // file_pos_register is written with new file position (-1 is eof).
 // Tolerent to no file if no shares yet persisted.
-template<class sint, class sgf2n>
-void Processor<sint, sgf2n>::read_shares_from_file(long start_file_posn,
+template<class T>
+template<class U>
+void SubProcessor<T>::read_shares_from_file(long start_file_posn,
     int end_file_pos_register, const vector<int>& data_registers,
-    size_t vector_size)
+    size_t vector_size, U& Proc)
 {
-  if (not sint::real_shares(P))
+  if (not T::real_shares(P))
     return;
 
   string filename;
@@ -401,7 +402,7 @@ void Processor<sint, sgf2n>::read_shares_from_file(long start_file_posn,
 
   unsigned int size = data_registers.size();
 
-  PointerVector<sint> outbuf(size * vector_size);
+  PointerVector<T> outbuf(size * vector_size);
 
   auto end_file_posn = start_file_posn;
 
@@ -411,36 +412,36 @@ void Processor<sint, sgf2n>::read_shares_from_file(long start_file_posn,
     for (unsigned int i = 0; i < size; i++)
     {
       for (size_t j = 0; j < vector_size; j++)
-        get_Sp_ref(data_registers[i] + j) = outbuf.next();
+        get_S_ref(data_registers[i] + j) = outbuf.next();
     }
 
-    write_Ci(end_file_pos_register, (long)end_file_posn);    
+    Proc.write_Ci(end_file_pos_register, (long)end_file_posn);
   }
   catch (file_missing& e) {
     if (OnlineOptions::singleton.has_option("verbose_persistence"))
       cerr << "Got file missing error, will return -2. " << e.what() << endl;
-    write_Ci(end_file_pos_register, (long)-2);
+    Proc.write_Ci(end_file_pos_register, (long)-2);
   }
 }
 
 // Append share data in data_registers to end of file. Expects Persistence directory to exist.
-template<class sint, class sgf2n>
-void Processor<sint, sgf2n>::write_shares_to_file(long start_pos,
+template<class T>
+void SubProcessor<T>::write_shares_to_file(long start_pos,
     const vector<int>& data_registers, size_t vector_size)
 {
-  if (not sint::real_shares(P))
+  if (not T::real_shares(P))
     return;
 
   string filename = binary_file_io.filename(P.my_num());
 
   unsigned int size = data_registers.size();
 
-  PointerVector<sint> inpbuf(size * vector_size);
+  PointerVector<T> inpbuf(size * vector_size);
 
   for (unsigned int i = 0; i < size; i++)
   {
     for (size_t j = 0; j < vector_size; j++)
-      inpbuf.next() = get_Sp_ref(data_registers[i] + j);
+      inpbuf.next() = get_S_ref(data_registers[i] + j);
   }
 
   binary_file_io.write_to_file(filename, inpbuf, start_pos);
