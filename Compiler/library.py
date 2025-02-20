@@ -913,6 +913,8 @@ def _range_prep(start, stop, step):
         step = 1
     if util.is_zero(step):
         raise CompilerError('step must not be zero')
+    # copy to avoid update
+    stop = type(stop)(stop)
     return start, stop, step
 
 def range_loop(loop_body, start, stop=None, step=None):
