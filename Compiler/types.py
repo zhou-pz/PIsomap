@@ -4167,6 +4167,8 @@ class cfix(_number, _structure):
         other = self.parse_type(other)
         if isinstance(other, cfix):
             return cfix._new(self.v + other.v, k=self.k, f=self.f)
+        elif isinstance(other, sfix):
+            return other + self
         else:
             return NotImplemented
 
