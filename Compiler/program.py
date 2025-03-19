@@ -1728,7 +1728,9 @@ class Tape:
 
             """
             other = type(self)(other)
-            self.program.start_new_basicblock(name="update")
+            same_block = other.block == self.block
+            if same_block or self.reg_type[0] != "s":
+                self.program.start_new_basicblock(name="update")
             if self.program != other.program:
                 raise CompilerError(
                     'cannot update register with one from another thread')
