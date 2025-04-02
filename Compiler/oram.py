@@ -1790,7 +1790,7 @@ class AtLeastOneRecursionPackedORAMWithEmpty(PackedORAMWithEmpty):
     storage = RecursiveORAM
 
 class OptimalPackedORAMWithEmpty(PackedORAMWithEmpty):
-    storage = OptimalORAM
+    storage = staticmethod(OptimalORAM)
 
 def test_oram(oram_type, N, value_type=sint, iterations=100):
     stop_grind()
