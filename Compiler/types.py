@@ -2210,6 +2210,7 @@ class _secret(_arithmetic_register, _secret_structure):
     @classmethod
     @set_instruction_type
     def matrix_mul(cls, A, B, n, res_params=None):
+        assert issubclass(cls, sint)
         assert len(A) % n == 0
         assert len(B) % n == 0
         size = len(A) * len(B) // n**2
