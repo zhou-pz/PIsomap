@@ -617,7 +617,8 @@ class sbits(bits):
         return res
     def __neg__(self):
         return self
-    def reveal(self):
+    def reveal(self, check=False):
+        assert not check
         if self.n == None or \
            self.n > max(self.max_length, self.clear_type.max_length):
             assert(self.unit == self.clear_type.unit)
@@ -879,10 +880,10 @@ class sbitvec(_vec, _bit, _binary):
                     # force the use of edaBits
                     backup = prog.use_edabit()
                     prog.use_edabit(True)
-                    from Compiler.floatingpoint import BitDecFieldRaw
-                    self.v = BitDecFieldRaw(
+                    self.v = prog.non_linear.bit_dec(
                         elements, max(length, input_length or prog.bit_length),
-                        length, prog.security)
+                        length, maybe_mixed=True)
+                    assert isinstance(self.v[0], sbits)
                     prog.use_edabit(backup)
                     return
                 comparison.require_ring_size(length, 'A2B conversion')

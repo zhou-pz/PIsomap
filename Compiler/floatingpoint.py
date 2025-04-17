@@ -675,11 +675,11 @@ def BitDecFull(a, n_bits=None, maybe_mixed=False):
     bit_length = p.bit_length()
     n_bits = n_bits or bit_length
     assert n_bits <= bit_length
-    logp = int(round(math.log(p, 2)))
     if get_program().rabbit_gap():
         # inspired by Rabbit (https://eprint.iacr.org/2021/119)
         # no need for exact randomness generation
         # if modulo a power of two is close enough
+        logp = int(round(math.log(p, 2)))
         if get_program().use_edabit():
             b, bbits = sint.get_edabit(logp, True, size=a.size)
             if logp != bit_length:
@@ -691,8 +691,15 @@ def BitDecFull(a, n_bits=None, maybe_mixed=False):
             if logp != bit_length:
                 bbits += [sint(0, size=a.size)]
     else:
-        bbits = [sint(size=a.size) for i in range(bit_length)]
-        tbits = [[sint(size=1) for i in range(bit_length)] for j in range(a.size)]
+        if maybe_mixed:
+            from .GC.types import sbitvec, sbit, sbits
+            bs = [sint() for j in range(a.size)]
+            tbits = [sbitvec.from_vec(sbit() for i in range(bit_length))
+                     for j in range(a.size)]
+        else:
+            bbits = [sint(size=a.size) for i in range(bit_length)]
+            tbits = [[sint(size=1) for i in range(bit_length)]
+                     for j in range(a.size)]
         pbits = util.bit_decompose(p)
         # Loop until we get some random integers less than p
         done = [regint(0) for i in range(a.size)]
@@ -701,15 +708,25 @@ def BitDecFull(a, n_bits=None, maybe_mixed=False):
             for j in range(a.size):
                 @if_(done[j] == 0)
                 def _():
-                    for i in range(bit_length):
-                        tbits[j][i].link(sint.get_random_bit())
+                    if maybe_mixed:
+                        r = sint.get_edabit(bit_length, True)
+                        bs[j].link(r[0])
+                        tbits[j].link(sbitvec.from_vec(r[1]))
+                    else:
+                        for i in range(bit_length):
+                            tbits[j][i].link(sint.get_random_bit())
                     c = regint(BITLT(tbits[j], pbits, bit_length).reveal(False))
                     done[j].link(c)
             return (sum(done) != a.size)
-        for j in range(a.size):
-            for i in range(bit_length):
-                movs(bbits[i][j], tbits[j][i])
-        b = sint.bit_compose(bbits)
+        if maybe_mixed:
+            b = sint(bs)
+            bbits = [sbits.get_type(a.size).bit_compose(
+                tbits[j][i] for j in range(a.size)) for i in range(bit_length)]
+        else:
+            for j in range(a.size):
+                for i in range(bit_length):
+                    movs(bbits[i][j], tbits[j][i])
+            b = sint.bit_compose(bbits)
     c = (a-b).reveal(False)
     cmodp = c
     t = bbits[0].bit_decompose_clear(p - c, bit_length)

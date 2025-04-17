@@ -115,7 +115,7 @@ class KnownPrime(NonLinear):
         return res
 
     def bit_dec(self, a, k, m, maybe_mixed=False):
-        assert k < self.prime.bit_length()
+        assert k <= self.prime.bit_length()
         bits = BitDecFull(a, m, maybe_mixed=maybe_mixed)
         assert len(bits) == m
         return bits
