@@ -1,0 +1,80 @@
+import numpy as np
+from sklearn.manifold import Isomap
+from sklearn.datasets import load_breast_cancer
+from sklearn.preprocessing import MinMaxScaler
+
+def read_pisomap_result(n, n_components):
+    file_path_0 = 'Player-Data/Binary-Output-P0-0'
+    Y = np.fromfile(file_path_0).reshape(n, n_components)
+    file_path_1 = 'Player-Data/Binary-Output-P1-0'
+    eigenval = np.fromfile(file_path_1)[-n_components:]
+    # print("Y:\n",Y)
+    # print("eigenval:\n",eigenval)
+
+    sort_indices = np.argsort(eigenval)[::-1]
+    sorted_eigenval = eigenval[sort_indices]
+    sorted_Y = Y[:, sort_indices]
+    # print("sorted_Y:\n",sorted_Y)
+    # print("sorted_eigenval:\n",sorted_eigenval)
+    return sorted_Y
+
+def adjust_pisomap_result(sorted_Y, X_transformed):
+    sign_sorted_Y = np.sign(sorted_Y[0, :])
+    sign_X = np.sign(X_transformed[0, :])
+    multiplier = np.where(sign_sorted_Y == sign_X, 1, -1)
+    sorted_Y = sorted_Y * multiplier
+    # print("sorted_Y:\n",sorted_Y)
+    return sorted_Y
+
+def sklearn_result(X, n_components, k_neighbors=None, radius=None):
+    # sklearn result
+    if radius is None:
+        isomap_sk = Isomap(n_components=n_components, n_neighbors=k_neighbors)
+    else:
+        isomap_sk = Isomap(n_components=n_components, n_neighbors=None, radius=radius)
+    X_transformed = isomap_sk.fit_transform(X)
+    # print('X_transformed: \n', X_transformed)
+    return X_transformed
+
+def test(sorted_Y, X_transformed):
+    mean_diff = np.mean(np.abs(sorted_Y - X_transformed))
+    print("mean_diff: ", mean_diff)
+    result = np.allclose(sorted_Y, X_transformed, atol=1e-1)
+    if result:
+        print("test passed!")
+    else:
+        print("test not passed!")
+
+def test_random_data():
+    np.set_printoptions(suppress=True)
+    n = 200  # number of samples
+    m = 10    # dimensions
+    k_neighbors = 8    # number of neighbors
+    n_components = 5   # reduced dimensions
+    np.random.seed(10)
+    X = np.random.uniform(0, 1, size=(n, m))
+
+    X_transformed = sklearn_result(X, n_components, k_neighbors)
+    sorted_Y = read_pisomap_result(n, n_components)
+    sorted_Y = adjust_pisomap_result(sorted_Y, X_transformed)
+    test(sorted_Y, X_transformed)
+
+def test_breast_cancer():
+    # 加载标准化的乳腺癌数据集
+    scaler = MinMaxScaler()
+    X = scaler.fit_transform(load_breast_cancer().data)
+    n = 50     # number of samples
+    X = X[:n]
+    k_neighbors = 20    # number of neighbors
+    radius = 2
+    n_components = 5   # reduced dimensions
+
+    X_transformed = sklearn_result(X, n_components, k_neighbors=k_neighbors)
+    # X_transformed = sklearn_result(X, n_components, radius=radius)
+    sorted_Y = read_pisomap_result(n, n_components)
+    sorted_Y = adjust_pisomap_result(sorted_Y, X_transformed)
+    test(sorted_Y, X_transformed)
+
+
+# test_random_data()
+test_breast_cancer()

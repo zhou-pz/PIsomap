@@ -1,0 +1,10 @@
+from Compiler.library import *
+from Programs.Source.manifold.topk import *
+import numpy as np
+
+num_samples = 8 * 10**5
+k = 3
+np.random.seed(10)
+arr = np.random.uniform(0, 1, size=(num_samples))
+sarr = sfix.input_tensor_via(0, arr)
+topk(sarr, k)

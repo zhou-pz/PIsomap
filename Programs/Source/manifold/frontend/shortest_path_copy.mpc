@@ -1,0 +1,31 @@
+from Compiler.library import *
+from Programs.Source.manifold.floyd import *
+from Compiler.mpc_graph_lib import dijkstra_optimized, T
+
+def test_shortest_path():
+    def input_gen(num_samples):
+        np.random.seed(23)
+        random_matrix = np.random.uniform(0, 3, (num_samples, num_samples))
+        # 计算对称矩阵
+        symmetric_matrix = random_matrix + random_matrix.T
+        np.fill_diagonal(symmetric_matrix, 0)
+        # symmetric_matrix[2,1], symmetric_matrix[3,0] = 1000, 1000
+        return symmetric_matrix
+    num_samples = 500  
+    Knn = input_gen(num_samples)
+    sknn = sfix.input_tensor_via(0, Knn)
+
+    # our optimized floyd
+    G = floyd_opt_1(sknn)
+    # G.reveal_to_binary_output()
+
+    # # dijkstra from https://link.springer.com/chapter/10.1007/978-3-031-17143-7_37
+    # all_pairs = sfix.Matrix(num_samples, num_samples)
+    # for s in range(num_samples):
+    # # @for_range_opt(num_samples)
+    # # def _(s):
+    #     all_pairs[s] = dijkstra_optimized(sknn, s)
+    # all_pairs.print_reveal_nested(end='\n')
+
+
+test_shortest_path()

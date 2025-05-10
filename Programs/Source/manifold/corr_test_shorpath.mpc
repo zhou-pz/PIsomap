@@ -1,0 +1,33 @@
+import numpy as np
+from scipy.sparse.csgraph import floyd_warshall # type: ignore
+from scipy.sparse.csgraph import dijkstra # type: ignore
+
+def input_gen(num_samples):
+    np.random.seed(23)
+    random_matrix = np.random.randint(0, 5, (num_samples, num_samples))
+    symmetric_matrix = (random_matrix + random_matrix.T)
+    np.fill_diagonal(symmetric_matrix, 0)
+    # symmetric_matrix[2,1], symmetric_matrix[3,0] = 1000, 1000
+    return symmetric_matrix
+
+num_samples = 4
+file_path = 'Player-Data/Binary-Output-P0-0'
+res_pisomap = np.fromfile(file_path).reshape(num_samples, num_samples)
+# print("res_pisomap:\n",res_pisomap)
+
+Knn = input_gen(num_samples)
+
+# Knn = [
+#     [99999, 1, 7, 99999],
+#     [99999, 99999, 1, 1],
+#     [99999, 99999, 99999, 5],
+#     [99999, 99999, 99999, 99999]
+# ]
+_, res_scipy = dijkstra(Knn, directed=True, return_predecessors=True)
+print("res_scipy:\n",res_scipy)
+
+result = np.allclose(res_pisomap, res_scipy, atol=1e-4)
+if result:
+    print("test passed!")
+else:
+    print("test not passed!")

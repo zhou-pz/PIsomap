@@ -1,0 +1,107 @@
+from Compiler.library import *
+from Compiler.sorting import *
+from Compiler import mpc_math
+import numpy as np
+program.use_trunc_pr = True # type: ignore
+
+MAX_ITER = 1
+
+def eye(n):
+    I = sfix.Matrix(n, n)
+    @for_range(n)
+    def _(i):
+        I[i][i] = sfix(1)
+    return I
+
+def elementSelection(n, m):
+    qq = []  # 存储每次迭代的q
+    pp = []  # 存储每次迭代的p
+    for k in range(1, 2*m):
+        if k < m:
+            q = np.arange(m - k + 1, n - k + 1)
+            p = np.zeros_like(q)
+            for i in range(len(q)):
+                if q[i] <= 2*m - 2*k:
+                    p[i] = (2*m - 2*k + 1) - q[i]
+                elif 2*m - 2*k < q[i] <= 2*m - k - 1:
+                    p[i] = (4*m - 2*k) - q[i]
+                else:
+                    p[i] = n
+        else:
+            q = np.arange(4*m - n - k, 3*m - k)
+            p = np.zeros_like(q)
+            for i in range(len(q)):
+                if q[i] < 2*m - k + 1:
+                    p[i] = n
+                elif 2*m - k + 1 <= q[i] <= 4*m - 2*k - 1:
+                    p[i] = (4*m - 2*k) - q[i]
+                else:
+                    p[i] = (6*m - 2*k - 1) - q[i]
+        q -= 1
+        p -= 1
+        qq.append(q.tolist())
+        pp.append(p.tolist())
+    return pp, qq
+
+def Jacobi(A):
+    n = A.shape[0]
+    m = (n + 1) // 2
+    # print("m: ", m)
+    Q = sfix.Matrix(n, n)
+    Q.assign(eye(n))
+    p, q = elementSelection(n, m)
+    count = 0
+
+    for _ in range(MAX_ITER):
+        count += 1
+        for k in range(40):
+            # print("k: ", k)
+            J = sfix.Matrix(n, n)
+            J.assign(eye(n))
+            n_elems = len(p[k])
+            tar_elems1 = sfix.Array(n_elems)
+            tar_elems2 = sfix.Array(n_elems)
+            tar_elems3 = sfix.Array(n_elems)
+            for i in range(n_elems):
+                tar_elems1[i] = A[p[k][i]][q[k][i]]
+                tar_elems2[i] = A[p[k][i]][p[k][i]]
+                tar_elems3[i] = A[q[k][i]][q[k][i]]
+            tar_diff = tar_elems2 - tar_elems3
+            
+            cos2θ = abs(tar_diff) / mpc_math.sqrt(4 * tar_elems1 * tar_elems1 + tar_diff * tar_diff)
+            # a = abs(tar_diff)
+            # b = mpc_math.sqrt(4 * tar_elems1 * tar_elems1 + tar_diff * tar_diff)
+            cos2 = 0.5 + 0.5 * cos2θ
+            sin2 = 0.5 - 0.5 * cos2θ
+            θc = mpc_math.sqrt(cos2)
+            θs = mpc_math.sqrt(sin2)
+            flag_zero = tar_elems1 == 0
+            cos = θc * (1 - flag_zero) + flag_zero
+            sin = θs * (((tar_elems1 * tar_diff) > 0) * 2 - 1)  # * (1 - (tar_elems1 == 0) * (tar_diff == 0))
+            for i in range(n_elems):
+                J[p[k][i]][p[k][i]], J[q[k][i]][q[k][i]] = cos[i], cos[i]
+                J[p[k][i]][q[k][i]], J[q[k][i]][p[k][i]] = -sin[i], sin[i]
+            A = J.transpose().dot(A).dot(J)
+            Q = J.transpose().dot(Q)
+
+            """ check for convergence"""
+
+    print_ln("迭代次数: %s", count)
+    return A, Q
+
+def test_Jacobi():
+    np.random.seed(4536)
+    n = 50
+    A = np.random.rand(n, n)
+    A = (A + A.T) * 0.5  # 构造对称矩阵，保证实特征值
+    # sfix.set_precision(25)
+    sA = sfix.input_tensor_via(0, A)
+    eigenvals, eigenvecs = Jacobi(sA)
+    # eigenvals_arr = sfix.Array(n)
+    # eigenvals_arr.assign(eigenvals.diag())
+    # print_ln("eigenvals:%s\neigenvecs:%s", sort(eigenvals_arr).reveal(), eigenvecs.reveal())
+    
+    # eigvals_np, eigvecs_np = np.linalg.eig(A)
+    # print_ln("eigvals_np:%s\neigenvecs:%s", sorted(eigvals_np), eigvecs_np)
+
+test_Jacobi()

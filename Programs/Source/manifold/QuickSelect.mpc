@@ -1,0 +1,86 @@
+from Compiler.library import *
+import numpy as np
+
+def patition(arr, low, high):
+    i = MemValue(low-1)  # 使用 MemValue 来处理可变变量  i = MemValue(low-1)
+    c = Array(len(arr), sint)
+    
+    @for_range_opt(high - low)
+    def _(j):
+        c[low  + j] = arr[low  + j] >= arr[high]
+
+    c = c.reveal()
+    # c = (arr[low : high] >= arr_pivot[low : high]).reveal()
+    # print_ln('low: %s', low.reveal())
+    # print_ln('high: %s', high.reveal())
+    # print_ln('c: %s', c.reveal())
+
+    @for_range_opt(high - low)
+    def _(j):
+        @if_(c[low  + j])
+        def _():
+            i.write(i.read() + 1)  # 使用 write/read 更新 i
+            # print_ln('i = %s', i.read())
+            temp = arr[i.read()]
+            arr[i.read()] = arr[j + low]
+            arr[j + low] = temp
+    p = i.iadd(1)
+    temp = arr[p]
+    arr[p] = arr[high]
+    arr[high] = temp
+    # print_ln('p: %s', p.reveal())    
+    return p
+
+def quickSelect(arr, lo, hi, k):
+    low = MemValue(lo)
+    high = MemValue(hi)
+    # 使arr键值唯一
+    # shuffle
+    # 设置p初始值不等于k-1
+    p = MemValue(k)
+    # print_ln('p: %s', p)
+    i = MemValue(0)
+    @do_while
+    def _():    
+        # print_ln('i: %s', i)
+        # print_ln('while branch!')
+        # print_ln('low patition之前的: %s', low)
+        # print_ln('high patition之前的: %s', high)
+        i.iadd(1)
+        p = patition(arr, low, high)
+        if p < (k-1):
+            # print_ln('p if branch: %s', p.read())
+            low.write(p.read() + 1)
+            # i.iadd(1)
+            # print_ln('if branch!')
+            # print_ln('low 外面的: %s', low)
+        else:
+            # print_ln('p else branch: %s', p.read())
+            high.write(p.read() - 1)
+            # i.iadd(1)
+            # print_ln('else branch!')
+            # print_ln('high 外面的: %s', high)
+        return p.read() != (k-1)
+    print_ln('循环次数: %s', i.reveal())
+
+def topk(arr, k):
+    quickSelect(arr, 0, len(arr)-1, k)
+    return arr[:k]
+
+num_samples = 100
+arr = np.random.randint(0, 1001, size=(num_samples))
+arr = sfix.input_tensor_via(0, arr)
+# print_ln('arr:')
+# arr.print_reveal_nested(end='\n')
+
+# @for_range_opt(2)
+# def _(j):
+# # for i in range(num_samples1):
+#     res = topk(arr, 5)
+#     # arr.sort()
+res = topk(arr, 5)
+# print_ln('res: %s', res.reveal/())
+
+# arr.sort()
+# print_ln('asort:')
+# arr.print_reveal_nested(end='\n')

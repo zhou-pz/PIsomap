@@ -1,0 +1,97 @@
+from Compiler.library import *
+from Programs.Source.manifold.kneighbors import kneighbors
+from Programs.Source.manifold.rneighbors import rneighbors
+from Programs.Source.manifold.MDS import mds, mds_corr
+from Programs.Source.manifold.floyd import *
+from Compiler.mpc_graph_lib import dijkstra_optimized, T
+from sklearn.datasets import load_breast_cancer
+from sklearn.preprocessing import MinMaxScaler
+program.use_trunc_pr = True # type: ignore
+
+def isomap(X, t, k = None, r = None):
+    if r is None:
+        G = kneighbors(X, k + 1) # set k+1, becuase there is always a 0 distance is operated by topk
+    else:
+        G = rneighbors(X, r)
+    D = floyd_opt_1(G)
+    Y = mds(D, t)
+    return Y
+
+def isomap_corr(X, t, k = None, r = None):
+    if r is None:
+        G = kneighbors(X, k + 1) # set k+1, becuase there is always a 0 distance is operated by topk
+    else:
+        G = rneighbors(X, r)
+    D = floyd_opt_1(G)
+    Y, eigenval = mds_corr(D, t)
+    return Y, eigenval
+
+def baseline(X, t, k = None, r = None):
+    if r is None:
+        G = kneighbors(X, k + 1) # set k+1, becuase there is always a 0 distance is operated by topk
+    else:
+        G = rneighbors(X, r)
+
+    n = G.shape[0]
+    D = sfix.Matrix(n, n)
+    for s in range(G.shape[0]):
+        D[s] = dijkstra_optimized(G, s)
+
+    Y = mds(D, t)
+    return Y
+
+def test_isomap_randomdata():
+    n = 200  # number of samples
+    m = 10    # dimensions
+    k_neighbors = 8    # number of neighbors
+    n_components = 5   # reduced dimensions
+    np.random.seed(10)
+    X = np.random.uniform(0, 1, size=(n, m))
+
+    # PIsomap
+    sfix.set_precision(30)
+    sfix.round_nearest = True
+    sX = sfix.input_tensor_via(0, X)   # input dataset
+    # Y = isomap(sX, t = n_components, k = k_neighbors)
+    Y, eigenval = isomap_corr(sX, t = n_components, k = k_neighbors)
+    Y.reveal_to_binary_output(0)
+    eigenval.reveal_to_binary_output(1)    
+
+def test_pisomap_breast_cancer():
+    # 加载标准化的乳腺癌数据集
+    scaler = MinMaxScaler()
+    X = scaler.fit_transform(load_breast_cancer().data)
+    n = 50
+    X = X[:n]
+    k_neighbors = 20    # number of neighbors
+    radius = 2
+    n_components = 5   # reduced dimensions
+
+    # PIsomap
+    sfix.set_precision(18, 38)
+    # sfix.round_nearest = True
+    sX = sfix.input_tensor_via(0, X)   # input dataset
+    Y, eigenval = isomap_corr(sX, t = n_components, k = k_neighbors)
+    # Y, eigenval = isomap_corr(sX, t = n_components, r=radius)
+    Y.reveal_to_binary_output(0)
+    eigenval.reveal_to_binary_output(1)    
+
+def test_basline_breast_cancer():
+    # 加载标准化的乳腺癌数据集
+    scaler = MinMaxScaler()
+    X = scaler.fit_transform(load_breast_cancer().data)
+    n = 50
+    X = X[:n]
+    k_neighbors = 20    # number of neighbors
+    n_components = 5   # reduced dimensions
+
+    # baseline
+    sfix.set_precision(20, 45)
+    # sfix.round_nearest = True
+    sX = sfix.input_tensor_via(0, X)   # input dataset
+    # Y = isomap(sX, t = n_components, k = k_neighbors)
+    Y = baseline(sX, t = n_components, k = k_neighbors)
+    # Y.reveal_to_binary_output(0)
+
+test_pisomap_breast_cancer()
+# test_basline_breast_cancer()
