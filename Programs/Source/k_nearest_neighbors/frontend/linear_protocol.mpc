@@ -1,0 +1,14 @@
+from Compiler.library import *
+from Programs.Source.k_nearest_neighbors.linear_protocol import *
+import numpy as np
+program.use_trunc_pr = True # type: ignore
+
+num_samples = 10**5
+dimension = 50
+k = 3
+np.random.seed(10)
+dataset = np.random.uniform(0, 1, size=(num_samples, dimension))
+query = np.random.uniform(0, 1, size=(dimension))
+sdataset = sfix.input_tensor_via(0, dataset)
+squery = sfix.input_tensor_via(0, query)
+pi = knn(sdataset, squery, k)
